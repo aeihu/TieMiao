@@ -85,9 +85,97 @@ namespace RL
             private List<CCrawler> _evaCrawlers = new List<CCrawler>();
             private List<CCrawler> _hatchingCrawlers = new List<CCrawler>();
             private List<CCrawler> _aliveCrawlers = new List<CCrawler>();
+
+            private void clipArea()
+            {
+                int __upIndex = 0;
+                int __downIndex = _Height_r;
+                int __LeftIndex = 0;
+                int __RightIndex = _Width_r;
+                bool __flag = false;
+
+                for (int i = 0; i < _Width_r; i++)
+                {
+                    for (int j = 0; j < _Height_r; j++)
+                        if (_space[i, j] != 0)
+                        {
+                            __flag = true;
+                            break;
+                        }
+
+                    if (__flag)
+                        break;
+
+                    __LeftIndex++;
+                }
+
+                __flag = false;
+                for (int i = _Width_r - 1; i >= 0; i--)
+                {
+                    for (int j = 0; j < _Height_r; j++)
+                        if (_space[i, j] != 0)
+                        {
+                            __flag = true;
+                            break;
+                        }
+
+                    if (__flag)
+                        break;
+
+                    __RightIndex--;
+
+                    if (__LeftIndex >= __RightIndex)
+                        return;
+                }
+
+                __flag = false;
+                for (int j = 0; j < _Height_r; j++)
+                {
+                    for (int i = 0; i < _Width_r; i++)
+                        if (_space[i, j] != 0)
+                        {
+                            __flag = true;
+                            break;
+                        }
+
+                    if (__flag)
+                        break;
+
+                    __upIndex++;
+                }
+
+                __flag = false;
+                for (int j = _Height_r - 1; j >= 0; j--)
+                {
+                    for (int i = 0; i < _Width_r; i++)
+                        if (_space[i, j] != 0)
+                        {
+                            __flag = true;
+                            break;
+                        }
+
+                    if (__flag)
+                        break;
+
+                    __downIndex--;
+
+                    if (__upIndex >= __downIndex)
+                        return;
+                }
+
+                int[,] _tempSpace = new int[__RightIndex - __LeftIndex, __downIndex - __upIndex];
+
+                _Width_r = __RightIndex - __LeftIndex;
+                _Height_r = __downIndex - __upIndex;
+
+                for (int i = 0; i < _Width_r; i++)
+                    for (int j = 0; j < _Height_r; j++)
+                        _tempSpace[i, j] = _space[__LeftIndex + i, __upIndex + j];
+                    
+                _space = _tempSpace;
+            }
             public void update()
             {
-
                 for (int i = _aliveCrawlers.Count - 1; i >= 0; i--)
                 {
                     _aliveCrawlers[i].Print();
@@ -111,6 +199,10 @@ namespace RL
                         _hatchingCrawlers[0].SetId(_index);
                         _aliveCrawlers.Add(_hatchingCrawlers[0]);
                         _hatchingCrawlers.RemoveAt(0);
+                    }
+                    else
+                    {
+                        clipArea();
                     }
                 }
             }
