@@ -1,14 +1,30 @@
-﻿using System;
+﻿using UnityEngine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace RL
 {
-    class CMapCreator
+    public class CMapCreator
     {
-        internal class CVector2i
+        public enum EWallFlag
+        {
+            None = 0,          // 000000000
+            Space = 1,         // 000000001
+            UpWall = 2,        // 000000010
+            UpDoor = 4,        // 000000100
+            LeftWall = 8,      // 000001000
+            LeftDoor = 16,     // 000010000
+            BottomWall = 32,   // 000100000
+            BottomDoor = 64,   // 001000000
+            RightWall = 128,   // 010000000
+            RightDoor = 256,   // 100000000
+            AllWall = 171,     // 010101011
+            AllWallDoor = 511, // 111111111
+        }
+        public class CVector2i
         {
             public int _X
             {
@@ -50,22 +66,12 @@ namespace RL
                 _Y = y;
             }
             public CVector2i()
-            { 
+            {
             }
         }
 
         public class CArea
         {
-            public enum EUnitType : int
-            {
-                Empty = 0,
-                Origin = 10000,
-                //Horizontal = 10001,
-                //Vertical = 10002,
-                //Death,┌└┐┘
-                //Burrow,
-            }
-
             private int[,] _space = null;
             private int _roomNum;
             private int _index = 0;
@@ -82,10 +88,22 @@ namespace RL
             }
 
 
-            private List<CCrawler> _evaCrawlers = new List<CCrawler>();
+            public List<CCrawler> _evaCrawlers = new List<CCrawler>();
             private List<CCrawler> _hatchingCrawlers = new List<CCrawler>();
             private List<CCrawler> _aliveCrawlers = new List<CCrawler>();
 
+            /*裁切多余的区域
+             * 例：
+             * 裁切前：
+             * 000000
+             * 001200
+             * 000340
+             * 000000
+             * 
+             * 裁切后：
+             * 120
+             * 034
+            */
             private void clipArea()
             {
                 int __upIndex = 0;
@@ -171,8 +189,13 @@ namespace RL
                 for (int i = 0; i < _Width_r; i++)
                     for (int j = 0; j < _Height_r; j++)
                         _tempSpace[i, j] = _space[__LeftIndex + i, __upIndex + j];
-                    
+
                 _space = _tempSpace;
+                
+                foreach (CCrawler crawler in _evaCrawlers)
+                {
+                    crawler.clip(__LeftIndex, __upIndex);
+                }
             }
             public void update()
             {
@@ -183,7 +206,6 @@ namespace RL
                     {
                         case CCrawler.ECaseOfMove.Burrow:
                         case CCrawler.ECaseOfMove.Death:
-                            _aliveCrawlers[i].Lay();
                             _aliveCrawlers.RemoveAt(i);
                             break;
                     }
@@ -207,6 +229,41 @@ namespace RL
                 }
             }
 
+            public int[,] Produce()
+            {
+                while (true)
+                {
+                    for (int i = _aliveCrawlers.Count - 1; i >= 0; i--)
+                    {
+                        _aliveCrawlers[i].Print();
+                        switch (_aliveCrawlers[i].Move())
+                        {
+                            case CCrawler.ECaseOfMove.Burrow:
+                            case CCrawler.ECaseOfMove.Death:
+                                _aliveCrawlers.RemoveAt(i);
+                                break;
+                        }
+                    }
+
+                    if (_aliveCrawlers.Count < 1)
+                    {
+                        if (_hatchingCrawlers.Count > 0)
+                        {
+                            _index++;
+                            _hatchingCrawlers[0].SetId(_index);
+                            _aliveCrawlers.Add(_hatchingCrawlers[0]);
+                            _hatchingCrawlers.RemoveAt(0);
+                        }
+                        else
+                        {
+                            clipArea();
+                            break;
+                        }
+                    }
+                }
+
+                return _space;
+            }
             public int GetCell(CVector2i pos)
             {
                 if (pos._Y >= _Height_r || pos._X >= _Width_r || pos._Y < 0 || pos._X < 0)
@@ -223,6 +280,7 @@ namespace RL
                 return true;
             }
 
+            // 获取指定坐标四周（上下左右）为空（等于0）的坐标集
             internal bool GetCellValidSpaceInAround(CVector2i pos)
             {
                 if (pos._Y >= _Height_r || pos._X >= _Width_r || pos._Y < 0 || pos._X < 0)
@@ -230,6 +288,8 @@ namespace RL
 
                 return _space[pos._X, pos._Y] < 1;
             }
+
+            // 获取指定坐标四周（上下左右）不为空（等于0）的坐标集
             internal bool GetCellValidValueInAround(CVector2i pos)
             {
                 if (pos._Y >= _Height_r || pos._X >= _Width_r || pos._Y < 0 || pos._X < 0)
@@ -255,30 +315,36 @@ namespace RL
 
             public void PrintArea()
             {
-                for (int h = 0; h < _Height_r; h++)
-                {
-                    for (int w = 0; w < _Width_r; w++)
-                    {
-                        switch (_space[w, h])
-                        {
-                            case (int)CArea.EUnitType.Empty:
-                                Console.Write("..");
-                                break;
-                            case (int)CArea.EUnitType.Origin:
-                                Console.Write("**");
-                                break;
-                            default:
-                                Console.Write(_space[w, h].ToString("D2"));
-                                break;
-                        }
-                    }
-                    
-                    Console.WriteLine("");
-                }
-                Console.WriteLine("Count: " + _evaCrawlers[0].GetCrawlerCount().ToString());
+
+                //StreamWriter stream = new StreamWriter(string.Format(@"{0}-{1}-{2} {3}{4}{5}.log",  
+                //    System.DateTime.Now.Year, System.DateTime.Now.Month, System.DateTime.Now.Day,
+                //    System.DateTime.Now.Hour, System.DateTime.Now.Minute, System.DateTime.Now.Second), true);
+
+                //for (int h = 0; h < _Height_r; h++)
+                //{
+                //    for (int w = 0; w < _Width_r; w++)
+                //    {
+                //        switch (_space[w, h])
+                //        {
+                //            case (int)CArea.EUnitType.Empty:
+                //                stream.Write("...");
+                //                break;
+                //            case (int)CArea.EUnitType.Origin:
+                //                stream.Write("***");
+                //                break;
+                //            default:
+                //                stream.Write(_space[w, h].ToString("D3"));
+                //                break;
+                //        }
+                //    }
+
+                //    stream.WriteLine("");
+                //}
+                //stream.WriteLine("Count: " + _evaCrawlers[0].GetCrawlerCount().ToString());
+                //stream.Flush();
             }
 
-            private class CCrawler
+            public class CCrawler
             {
                 public enum ECaseOfMove
                 {
@@ -286,6 +352,12 @@ namespace RL
                     Lay,
                     Burrow,
                     Death,
+                }
+
+                public class CCellData
+                {
+                    public CVector2i _Pos;
+                    public EWallFlag _Flag = EWallFlag.AllWall;
                 }
 
                 #region Overmind of Crawler
@@ -297,23 +369,99 @@ namespace RL
                 }
                 #endregion
 
+                private CVector2i _position = new CVector2i();
+                public CVector2i Position
+                {
+                    get
+                    {
+                        return new CVector2i(_position._X, _position._Y);
+                    }
+                    set 
+                    {
+                        _position._X = value._X;
+                        _position._Y = value._Y;
+                    }
+                }
+
                 private int _burrowRate;
 
-                private int _id = 0;
-                private CVector2i _position;
-                private int _hp = 0;
-                private int _generation = 1;
-                private int _seeds = 0;
-                private int _eggs = 0;
+                public int _id = 0;
+                public int _hp = 0;
+                public int _generation = 1;
+                public int _seeds = 0;
+                public int _eggs = 0;
                 private CArea _area = null;
-                private CCrawler _mother = null;
-                private Random _random = null;
-                private List<CVector2i> _eggMarks = null;
-                private List<CCrawler> _children = null;
-                private List<CVector2i> _footMarks = null;
+                public CCrawler _mother = null;
+                public System.Random _random = null;
+                public List<CCrawler> _children = null;
+                public List<CCellData> _footMarks = null;
 
                 private delegate bool _func(CVector2i pos);
+                public List<CCrawler> GetEnumerator()
+                {
+                    List<CCrawler> __result = new List<CCrawler>();
+                    __result.AddRange(_children);
+                    foreach (CCrawler child in _children)
+                    {
+                        __result.AddRange(child.GetEnumerator());
+                    }
 
+                    return __result;
+                }
+                public List<CCrawler> GetCell()
+                {
+                    List<CCrawler> __result = new List<CCrawler>();
+                    __result.AddRange(GetEnumerator());
+                    __result.Add(this);
+                    return __result;
+                }
+
+                public int[,] GetRoomData()
+                {
+                    int __minX = 0;
+                    int __maxX = 0;
+                    int __minY = 0;
+                    int __maxY = 0;
+                    for (int i = 0; i < _footMarks.Count; i++)
+                    {
+                        if (i > 0)
+                        {
+                            if (__minX > _footMarks[i]._Pos._X) __minX = _footMarks[i]._Pos._X;
+                            if (__minY > _footMarks[i]._Pos._Y) __minY = _footMarks[i]._Pos._Y;
+
+                            if (__maxX < _footMarks[i]._Pos._X) __maxX = _footMarks[i]._Pos._X;
+                            if (__maxY < _footMarks[i]._Pos._Y) __maxY = _footMarks[i]._Pos._Y;
+                        }
+                        else
+                        {
+                            __maxX = __minX = _footMarks[i]._Pos._X;
+                            __maxY = __minY = _footMarks[i]._Pos._Y;
+                        }
+                    }
+
+                    int[,] __result = new int[1 + (__maxX - __minX), 1 + (__maxY - __minY)];
+
+                    foreach (CCellData cell in _footMarks)
+                    {
+                        __result[cell._Pos._X - __minX, cell._Pos._Y - __minY] = (int)cell._Flag;
+                    }
+                    return __result;
+                }
+
+                public void clip(int left, int up)
+                {
+                    foreach (CCellData cell in _footMarks)
+                    {
+                        cell._Pos._X -= left;
+                        cell._Pos._Y -= up;
+
+                    }
+                    _position._X -= left;
+                    _position._Y -= up;
+
+                    foreach (CCrawler crawler in _children)
+                        crawler.clip(left, up);
+                }
                 public int GetChildrenCount()
                 {
                     if (_children.Count == 0)
@@ -321,7 +469,7 @@ namespace RL
                     else
                     {
                         int __result = _children.Count;
-                        for (int i = 0; i<_children.Count; i++)
+                        for (int i = 0; i < _children.Count; i++)
                         {
                             __result += _children[i].GetChildrenCount();
                         }
@@ -338,22 +486,114 @@ namespace RL
                 {
                     Console.Write("hp:" + GetHP().ToString());
                     Console.Write(" generation:" + _generation.ToString());
-                    Console.Write(" egg:" + _eggMarks.Count.ToString());
-                    Console.WriteLine("");
-                    Console.Write("mark:" + _eggMarks.Count.ToString());
-                    for (int i = 0; i < _eggMarks.Count; i++)
-                    {
-                        Console.Write(string.Format("({0}:{1}) ", _eggMarks[i]._X, _eggMarks[i]._Y));
-                    }
                     Console.WriteLine("");
                 }
                 public void SetId(int id)
                 {
                     _id = id;
                 }
+                private void afterDeath()
+                {
+                    for (int i = 0; i < _footMarks.Count; i++)
+                    {
+                        #region 设置每个cell的门
+                        if (i == 0 && _mother != null)
+                        {
+                            bool __isBreak = false;
+                            for (int index = _mother._footMarks.Count - 1; index >= 0; index--)
+                            {
+                                if (_footMarks[0]._Pos._X - 1 == _mother._footMarks[index]._Pos._X &&
+                                    _mother._footMarks[index]._Pos._Y == _footMarks[0]._Pos._Y)
+                                {
+                                    _footMarks[0]._Flag |= EWallFlag.LeftDoor;
+                                    _mother._footMarks[index]._Flag |= EWallFlag.RightDoor;
+                                    _area.SetCell(_mother._footMarks[index]._Pos, (int)_mother._footMarks[index]._Flag);
+                                    __isBreak = true;
+                                    break;
+                                }
+                                if (_footMarks[0]._Pos._X + 1 == _mother._footMarks[index]._Pos._X &&
+                                    _mother._footMarks[index]._Pos._Y == _footMarks[0]._Pos._Y)
+                                {
+                                    _footMarks[0]._Flag |= EWallFlag.RightDoor;
+                                    _mother._footMarks[index]._Flag |= EWallFlag.LeftDoor;
+                                    _area.SetCell(_mother._footMarks[index]._Pos, (int)_mother._footMarks[index]._Flag);
+                                    __isBreak = true;
+                                    break;
+                                }
+                            }
+
+                            if (!__isBreak)
+                                for (int index = _mother._footMarks.Count - 1; index >= 0; index--)
+                                {
+                                    if (_footMarks[0]._Pos._Y - 1 == _mother._footMarks[index]._Pos._Y &&
+                                        _mother._footMarks[index]._Pos._X == _footMarks[0]._Pos._X)
+                                    {
+                                        _footMarks[0]._Flag |= EWallFlag.UpDoor;
+                                        _mother._footMarks[index]._Flag |= EWallFlag.BottomDoor;
+                                        _area.SetCell(_mother._footMarks[index]._Pos, (int)_mother._footMarks[index]._Flag);
+                                        break;
+                                    }
+                                    if (_footMarks[0]._Pos._Y + 1 == _mother._footMarks[index]._Pos._Y &&
+                                        _mother._footMarks[index]._Pos._X == _footMarks[0]._Pos._X)
+                                    {
+                                        _footMarks[0]._Flag |= EWallFlag.BottomDoor;
+                                        _mother._footMarks[index]._Flag |= EWallFlag.UpDoor;
+                                        _area.SetCell(_mother._footMarks[index]._Pos, (int)_mother._footMarks[index]._Flag);
+                                        break;
+                                    }
+                                }
+                        }
+                        #endregion
+
+                        #region 设置每个cell的墙
+                        for (int j = 0; j < _footMarks.Count; j++)
+                        {
+                            if (i != j)
+                            {
+                                if ((_footMarks[i]._Flag & EWallFlag.LeftWall) != 0 &&
+                                    _footMarks[i]._Pos._X - 1 == _footMarks[j]._Pos._X &&
+                                    _footMarks[i]._Pos._Y == _footMarks[j]._Pos._Y)
+                                {
+                                    _footMarks[i]._Flag -= EWallFlag.LeftWall;
+                                    continue;
+                                }
+
+                                if ((_footMarks[i]._Flag & EWallFlag.RightWall) != 0 &&
+                                    _footMarks[i]._Pos._X + 1 == _footMarks[j]._Pos._X &&
+                                    _footMarks[i]._Pos._Y == _footMarks[j]._Pos._Y)
+                                {
+                                    _footMarks[i]._Flag -= EWallFlag.RightWall;
+                                    continue;
+                                }
+
+                                if ((_footMarks[i]._Flag & EWallFlag.UpWall) != 0 &&
+                                    _footMarks[i]._Pos._Y - 1 == _footMarks[j]._Pos._Y &&
+                                    _footMarks[i]._Pos._X == _footMarks[j]._Pos._X)
+                                {
+                                    _footMarks[i]._Flag -= EWallFlag.UpWall;
+                                    continue;
+                                }
+
+                                if ((_footMarks[i]._Flag & EWallFlag.BottomWall) != 0 &&
+                                    _footMarks[i]._Pos._Y + 1 == _footMarks[j]._Pos._Y &&
+                                    _footMarks[i]._Pos._X == _footMarks[j]._Pos._X)
+                                {
+                                    _footMarks[i]._Flag -= EWallFlag.BottomWall;
+                                }
+                            }
+                        }
+                        _area.SetCell(_footMarks[i]._Pos, (int)_footMarks[i]._Flag);
+                        #endregion
+
+                        #region 把房间坐标设置为房间最左上点的cell坐标
+                        if (_position._X > _footMarks[i]._Pos._X) _position._X = _footMarks[i]._Pos._X;
+                        if (_position._Y > _footMarks[i]._Pos._Y) _position._Y = _footMarks[i]._Pos._Y;
+                        #endregion
+                    }
+                }
                 private List<CVector2i> GetValidSpace(_func func)
                 {
-                    return GetValidSpace(func, _position);
+                    return GetValidSpace(func, Position);
                 }
                 private List<CVector2i> GetValidSpace(_func func, CVector2i pos)
                 {
@@ -378,12 +618,8 @@ namespace RL
                     List<CVector2i> __result = new List<CVector2i>();
 
                     if (_footMarks != null)
-                    {
                         for (int i = 0; i < _footMarks.Count; i++)
-                        {
-                            __result.AddRange(GetValidSpace(_area.GetCellValidSpaceInAround, _footMarks[i]));
-                        }
-                    }
+                            __result.AddRange(GetValidSpace(_area.GetCellValidSpaceInAround, _footMarks[i]._Pos));
 
                     return __result.Distinct().ToList();
                 }
@@ -392,10 +628,9 @@ namespace RL
                 {
                     _area = area;
                     _generation = 1;
-                    _random = new Random();
-                    _footMarks = new List<CVector2i>();
+                    _random = new System.Random();
+                    _footMarks = new List<CCellData>();
                     _children = new List<CCrawler>();
-                    _eggMarks = new List<CVector2i>();
                 }
 
                 public int GetHP()
@@ -421,16 +656,20 @@ namespace RL
                             return;
 
                         //_position = new CVector2i(_random.Next(_area.GetWidth()), _random.Next(_area.GetHeight()));
-                        _position = new CVector2i(_area._Width_r/2, _area._Height_r/2);
+                        Position = new CVector2i(_area._Width_r / 2, _area._Height_r / 2);
                     }
                     else
                     {
-                        _position = pos;
+                        Position = pos;
                     }
-                    _footMarks.Add(_position);
-                    _area.SetCell(_position, (int)CArea.EUnitType.Origin);
 
-                    _hp = _random.Next(1,3);
+                    CCellData __footMark = new CCellData();
+                    __footMark._Pos = Position;
+                    _footMarks.Add(__footMark);
+
+                    _area.SetCell(Position, 1);
+
+                    _hp = _random.Next(1, 15);
                     _hp += _random.Next(2);
                     _hp += _random.Next(2);
                     _hp += _random.Next(2);
@@ -438,12 +677,13 @@ namespace RL
                     _seeds = seeds;
 
                     if (_seeds < 1)
-                    { 
+                    {
                         _eggs = 0;
                     }
-                    else { 
+                    else
+                    {
                         if (seeds < 4)
-                            _eggs = _random.Next(1, _seeds);
+                            _eggs = _random.Next(1, _seeds+1);
                         else
                             _eggs = _random.Next(1, 4); //need fixed
 
@@ -455,21 +695,21 @@ namespace RL
                     CCrawler __crawler = this;
                     List<CVector2i> __validPos = __crawler.GetTheCrawlerValidSpace();
 
-                    while (GetEgg() > 0)
+                    while (_eggs > 0)
                     {
                         if (__validPos.Count > 0)
                         {
                             int __index = _random.Next(__validPos.Count);
-                            int __inheritSeeds = GetEgg() == 1 ? __crawler._seeds : _random.Next(__crawler._seeds);
+                            int __inheritSeeds = _eggs == 1 ? __crawler._seeds : _random.Next(__crawler._seeds+1);
                             __crawler._seeds -= __inheritSeeds;
 
                             CCrawler __child = new CCrawler(ref _area);
-                            _children.Add(__child);
+                            _eggs--;
+                            __crawler._children.Add(__child);
                             __child.Born(__crawler, __validPos[__index], __inheritSeeds);
-                            _eggMarks.Add(__validPos[__index]);
                             __validPos.RemoveAt(__index);
                         }
-                        else 
+                        else
                         {
                             if (__crawler._mother != null)
                             {
@@ -498,39 +738,41 @@ namespace RL
 
                     return false;
                 }
-                private bool processOfMove(List<CVector2i> validPos)
+                private bool processOfMoveing(List<CVector2i> validPos)
                 {
                     if (validPos.Count > 0)
                     {
-                        _footMarks.Add(validPos[_random.Next(validPos.Count)]);
-                        _position = _footMarks[_footMarks.Count - 1];
-                        _area.SetCell(_position, _id);
+                        CCellData __footMark = new CCellData();
+                        __footMark._Pos = validPos[_random.Next(validPos.Count)];
+                        _footMarks.Add(__footMark);
+                        Position = _footMarks[_footMarks.Count - 1]._Pos;
+                        _area.SetCell(Position, 1);
                         return true;
                     }
 
                     return false;
                 }
-
-                public ECaseOfMove Move()
+                private ECaseOfMove Moveing()
                 {
-                    if (GetHP()>0)
+                    if (GetHP() > 0)
                     {
                         List<CVector2i> __validPos = GetValidSpace(_area.GetCellValidSpaceInAround);
 
-                        if (!processOfMove(__validPos))
+                        if (!processOfMoveing(__validPos))
                         {
                             int __index = _footMarks.Count - 2;
 
                             while (__index >= 0)
                             {
-                                _position = _footMarks[__index];
+                                Position = _footMarks[__index]._Pos;
                                 __validPos = GetValidSpace(_area.GetCellValidSpaceInAround);
 
-                                if (processOfMove(__validPos))
+                                if (processOfMoveing(__validPos))
                                     return ECaseOfMove.Normal;
 
                                 __index--;
                             }
+
                             return ECaseOfMove.Death;
                         }
 
@@ -539,13 +781,28 @@ namespace RL
 
                     return ECaseOfMove.Death;
                 }
+
+                public ECaseOfMove Move()
+                {
+                    ECaseOfMove __result = Moveing();
+                    switch (__result)
+                    {
+                        case CCrawler.ECaseOfMove.Burrow:
+                        case CCrawler.ECaseOfMove.Death:
+                            Lay();
+                            afterDeath();
+                            break;
+                    }
+
+                    return __result;
+                }
             }
 
         }
 
         public List<CArea> _AreaList = null;
 
-        public CMapCreator() 
+        public CMapCreator()
         {
             _AreaList = new List<CArea>();
         }
