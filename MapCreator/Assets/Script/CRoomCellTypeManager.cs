@@ -1,26 +1,19 @@
-﻿using System.Collections;
+﻿/*
+* Copyright (C) 2015, <Aeihu.z, aeihu.z@gmail.com>.
+*
+* TieMiao is a free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* Version 3(GPLv3) as published by the Free Software Foundation.
+*/
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace RL
+namespace TieMiao
 {
     public class CRoomCellTypeManager
     {
-        public enum EWallFlag
-        {
-            None = 0,          // 000000000
-            Space = 1,         // 000000001
-            UpWall = 2,        // 000000010
-            UpDoor = 4,        // 000000100
-            LeftWall = 8,      // 000001000
-            LeftDoor = 16,     // 000010000
-            BottomWall = 32,   // 000100000
-            BottomDoor = 64,   // 001000000
-            RightWall = 128,   // 010000000
-            RightDoor = 256,   // 100000000
-            AllWall = 171,     // 010101011
-            AllWallDoor = 511, // 111111111
-        }
         class RoomCellType
         {
             public RoomCellType(EWallFlag flag, int size, int borderSize, Color32 spaceColor, Color32 wallColor)

@@ -1,30 +1,40 @@
-﻿using UnityEngine;
+﻿
+/*
+* Copyright (C) 2015, <Aeihu.z, aeihu.z@gmail.com>.
+*
+* TieMiao is a free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* Version 3(GPLv3) as published by the Free Software Foundation.
+*/
+
+using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace RL
+namespace TieMiao
 {
+    public enum EWallFlag : int
+    {
+        None = 0,          // 000000000
+        Space = 1,         // 000000001
+        UpWall = 2,        // 000000010
+        UpDoor = 4,        // 000000100
+        LeftWall = 8,      // 000001000
+        LeftDoor = 16,     // 000010000
+        BottomWall = 32,   // 000100000
+        BottomDoor = 64,   // 001000000
+        RightWall = 128,   // 010000000
+        RightDoor = 256,   // 100000000
+        AllWall = 171,     // 010101011
+        AllWallDoor = 511, // 111111111
+    }
+
     public class CMapCreator
     {
-        public enum EWallFlag
-        {
-            None = 0,          // 000000000
-            Space = 1,         // 000000001
-            UpWall = 2,        // 000000010
-            UpDoor = 4,        // 000000100
-            LeftWall = 8,      // 000001000
-            LeftDoor = 16,     // 000010000
-            BottomWall = 32,   // 000100000
-            BottomDoor = 64,   // 001000000
-            RightWall = 128,   // 010000000
-            RightDoor = 256,   // 100000000
-            AllWall = 171,     // 010101011
-            AllWallDoor = 511, // 111111111
-        }
-        public class CVector2i
+        public class CVector2i : IEquatable<CVector2i>  
         {
             public int _X
             {
@@ -49,16 +59,22 @@ namespace RL
                 __result._X = lvec._X - rvec._X;
                 __result._Y = lvec._Y - rvec._Y;
                 return __result;
+            } 
+            public bool Equals(CVector2i other)  
+            {  
+                if (System.Object.ReferenceEquals(other, null)) return false;  
+                if (System.Object.ReferenceEquals(this, other)) return true;  
+  
+                return _X.Equals(other._X) && _Y.Equals(other._Y);  
             }
+            public override int GetHashCode()
+            {
+ 
+                int hash_X = _X.GetHashCode();
+                int hash_Y = _Y.GetHashCode();
 
-            //public static bool operator ==(CVector2i lvec, CVector2i rvec)
-            //{
-            //    return lvec._X == rvec._X && lvec._Y == rvec._Y;
-            //}
-            //public static bool operator !=(CVector2i lvec, CVector2i rvec)
-            //{
-            //    return lvec._X != rvec._X || lvec._Y != rvec._Y;
-            //}
+                return hash_X ^ hash_Y;
+            } 
 
             public CVector2i(int x, int y)
             {
@@ -315,37 +331,6 @@ namespace RL
                 {
                     _evaCrawlers.Add(CCrawler.CreateEva(this));
                 }
-            }
-
-            public void PrintArea()
-            {
-
-                //StreamWriter stream = new StreamWriter(string.Format(@"{0}-{1}-{2} {3}{4}{5}.log",  
-                //    System.DateTime.Now.Year, System.DateTime.Now.Month, System.DateTime.Now.Day,
-                //    System.DateTime.Now.Hour, System.DateTime.Now.Minute, System.DateTime.Now.Second), true);
-
-                //for (int h = 0; h < _Height_r; h++)
-                //{
-                //    for (int w = 0; w < _Width_r; w++)
-                //    {
-                //        switch (_space[w, h])
-                //        {
-                //            case (int)CArea.EUnitType.Empty:
-                //                stream.Write("...");
-                //                break;
-                //            case (int)CArea.EUnitType.Origin:
-                //                stream.Write("***");
-                //                break;
-                //            default:
-                //                stream.Write(_space[w, h].ToString("D3"));
-                //                break;
-                //        }
-                //    }
-
-                //    stream.WriteLine("");
-                //}
-                //stream.WriteLine("Count: " + _evaCrawlers[0].GetCrawlerCount().ToString());
-                //stream.Flush();
             }
 
             public class CCrawler
@@ -623,6 +608,7 @@ namespace RL
 
                     return __result;
                 }
+
                 private List<CVector2i> GetTheCrawlerValidSpace()
                 {
                     List<CVector2i> __result = new List<CVector2i>();

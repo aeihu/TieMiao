@@ -1,7 +1,15 @@
-﻿using UnityEngine;
+﻿/*
+* Copyright (C) 2015, <Aeihu.z, aeihu.z@gmail.com>.
+*
+* TieMiao is a free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* Version 3(GPLv3) as published by the Free Software Foundation.
+*/
+
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
-using RL;
+using TieMiao;
 using System.Collections.Generic;
 
 public class CRoomRender : MonoBehaviour
@@ -90,7 +98,7 @@ public class CRoomRender : MonoBehaviour
                 #region 上左
                 if (__leftRight) // 上左 （从 上左点 找 上右点）
                 {
-                    if ((_room[col, row] & (int)CMapCreator.EWallFlag.UpWall) != 0)
+                    if ((_room[col, row] & (int)EWallFlag.UpWall) != 0)
                     {
                         col++;
                         if (col >= _room.GetLength(0))
@@ -120,7 +128,7 @@ public class CRoomRender : MonoBehaviour
                 #region 上右
                 else // 上右 （从 上右点 找 下右点）
                 {
-                    if ((_room[col, row] & (int)CMapCreator.EWallFlag.RightWall) != 0)
+                    if ((_room[col, row] & (int)EWallFlag.RightWall) != 0)
                     {
                         row++;
                         if (row >= _room.GetLength(1))
@@ -165,7 +173,7 @@ public class CRoomRender : MonoBehaviour
                         __orgR = row;
                     }
 
-                    if ((_room[col, row] & (int)CMapCreator.EWallFlag.LeftWall) != 0)
+                    if ((_room[col, row] & (int)EWallFlag.LeftWall) != 0)
                     {
                         row--;
                         if (row < 0)
@@ -195,7 +203,7 @@ public class CRoomRender : MonoBehaviour
                 #region 下右
                 else // 下右 （从 下右点 找 下左点）
                 {
-                    if ((_room[col, row] & (int)CMapCreator.EWallFlag.BottomWall) != 0)
+                    if ((_room[col, row] & (int)EWallFlag.BottomWall) != 0)
                     {
                         col--;
                         if (col < 0)
@@ -267,12 +275,11 @@ public class CRoomRender : MonoBehaviour
 
         __infoText.text += string.Format("(G:{0},I:{1})", _crawler._generation, _crawler._id);
 
-        CRoomRender __tmpRoomRender = null;
+        //CRoomRender __tmpRoomRender = null;
         while (__tmpCrawler._mother != null)
         {
             __tmpCrawler = __tmpCrawler._mother;
-            __tmpRoomRender = GameObject.Find("room" + __tmpCrawler._id.ToString()).GetComponent<CRoomRender>();
-
+            //__tmpRoomRender = GameObject.Find("room" + __tmpCrawler._id.ToString()).GetComponent<CRoomRender>();
 
             //__tmpRoomRender._IsAnime = true;
             __infoText.text += string.Format("->(G:{0},I:{1})", __tmpCrawler._generation, __tmpCrawler._id);
