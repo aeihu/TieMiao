@@ -44,8 +44,8 @@ namespace TieMiao
                 set
                 {
                     _flag = value;
-                    DrawSpace();
-                    DrawWall();
+                    drawSpace();
+                    drawWall();
                 }
             }
 
@@ -59,7 +59,7 @@ namespace TieMiao
             #endregion
 
             #region 私有方法
-            private void DrawSpace()
+            private void drawSpace()
             {
                 int __total = _size * _size;
 
@@ -72,21 +72,21 @@ namespace TieMiao
                 }
             }
 
-            private void DrawWall()
+            private void drawWall()
             {
                 if ((_flag & EWallFlag.UpWall) != 0)
-                    DrawUpWall();
+                    drawUpWall();
 
                 if ((_flag & EWallFlag.BottomWall) != 0)
-                    DrawBottomWall();
+                    drawBottomWall();
 
                 if ((_flag & EWallFlag.LeftWall) != 0)
-                    DrawLeftWall();
+                    drawLeftWall();
 
                 if ((_flag & EWallFlag.RightWall) != 0)
-                    DrawRightWall();
+                    drawRightWall();
             }
-            private void DrawUpWall()
+            private void drawUpWall()
             {
                 for (int col = 0; col < _size; col++)
                 {
@@ -103,7 +103,7 @@ namespace TieMiao
                     }
                 }
             }
-            private void DrawLeftWall()
+            private void drawLeftWall()
             {
                 for (int col = 0; col < _borderSize; col++)
                 {
@@ -120,7 +120,7 @@ namespace TieMiao
                     }
                 }
             }
-            private void DrawBottomWall()
+            private void drawBottomWall()
             {
                 for (int col = 0; col < _size; col++)
                 {
@@ -137,7 +137,7 @@ namespace TieMiao
                     }
                 }
             }
-            private void DrawRightWall()
+            private void drawRightWall()
             {
                 for (int col = _size - 1; col >= _size - _borderSize; col--)
                 {

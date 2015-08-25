@@ -83,6 +83,7 @@ namespace TieMiao
             }
             public CVector2i()
             {
+                _Y = _X = 0;
             }
         }
 
@@ -92,17 +93,16 @@ namespace TieMiao
             private int _roomNum;
             private int _index = 0;
 
-            public int _Width_r
+            public int _Width
             {
                 get;
                 private set;
             }
-            public int _Height_r
+            public int _Height
             {
                 get;
                 private set;
             }
-
 
             public List<CCrawler> _evaCrawlers = new List<CCrawler>();
             public List<CCrawler> _crawlers = new List<CCrawler>();
@@ -124,14 +124,14 @@ namespace TieMiao
             private void clipArea()
             {
                 int __upIndex = 0;
-                int __downIndex = _Height_r;
+                int __downIndex = _Height;
                 int __LeftIndex = 0;
-                int __RightIndex = _Width_r;
+                int __RightIndex = _Width;
                 bool __flag = false;
 
-                for (int i = 0; i < _Width_r; i++)
+                for (int i = 0; i < _Width; i++)
                 {
-                    for (int j = 0; j < _Height_r; j++)
+                    for (int j = 0; j < _Height; j++)
                         if (_space[i, j] != 0)
                         {
                             __flag = true;
@@ -145,9 +145,9 @@ namespace TieMiao
                 }
 
                 __flag = false;
-                for (int i = _Width_r - 1; i >= 0; i--)
+                for (int i = _Width - 1; i >= 0; i--)
                 {
-                    for (int j = 0; j < _Height_r; j++)
+                    for (int j = 0; j < _Height; j++)
                         if (_space[i, j] != 0)
                         {
                             __flag = true;
@@ -164,9 +164,9 @@ namespace TieMiao
                 }
 
                 __flag = false;
-                for (int j = 0; j < _Height_r; j++)
+                for (int j = 0; j < _Height; j++)
                 {
-                    for (int i = 0; i < _Width_r; i++)
+                    for (int i = 0; i < _Width; i++)
                         if (_space[i, j] != 0)
                         {
                             __flag = true;
@@ -180,9 +180,9 @@ namespace TieMiao
                 }
 
                 __flag = false;
-                for (int j = _Height_r - 1; j >= 0; j--)
+                for (int j = _Height - 1; j >= 0; j--)
                 {
-                    for (int i = 0; i < _Width_r; i++)
+                    for (int i = 0; i < _Width; i++)
                         if (_space[i, j] != 0)
                         {
                             __flag = true;
@@ -200,11 +200,11 @@ namespace TieMiao
 
                 int[,] _tempSpace = new int[__RightIndex - __LeftIndex, __downIndex - __upIndex];
 
-                _Width_r = __RightIndex - __LeftIndex;
-                _Height_r = __downIndex - __upIndex;
+                _Width = __RightIndex - __LeftIndex;
+                _Height = __downIndex - __upIndex;
 
-                for (int i = 0; i < _Width_r; i++)
-                    for (int j = 0; j < _Height_r; j++)
+                for (int i = 0; i < _Width; i++)
+                    for (int j = 0; j < _Height; j++)
                         _tempSpace[i, j] = _space[__LeftIndex + i, __upIndex + j];
 
                 _space = _tempSpace;
@@ -213,41 +213,6 @@ namespace TieMiao
                 {
                     crawler.clip(__LeftIndex, __upIndex);
                 }
-            }
-            public CCrawler update()
-            {
-                CCrawler __result = null;
-                for (int i = _aliveCrawlers.Count - 1; i >= 0; i--)
-                {
-                    while (_aliveCrawlers[i].Move() != CCrawler.ECaseOfMove.Death)
-                    //switch (_aliveCrawlers[i].Move())
-                    {
-                      //  case CCrawler.ECaseOfMove.Burrow:
-                       // case CCrawler.ECaseOfMove.Death:
-                            //break;
-                    }
-                    __result = _aliveCrawlers[i];
-                    _aliveCrawlers.RemoveAt(i);
-                }
-
-                if (_aliveCrawlers.Count < 1)
-                {
-                    ///_aliveCrawlers.AddRange(_hatchingCrawlers);
-                    //_hatchingCrawlers.Clear();
-                    if (_hatchingCrawlers.Count > 0)
-                    {
-                        _index++;
-                        _hatchingCrawlers[0].SetId(_index);
-                        _aliveCrawlers.Add(_hatchingCrawlers[0]);
-                        _hatchingCrawlers.RemoveAt(0);
-                    }
-                    else
-                    {
-                        //clipArea();
-                    }
-                }
-
-                return __result;
             }
 
             public int[,] Produce()
@@ -286,14 +251,14 @@ namespace TieMiao
             }
             public int GetCell(CVector2i pos)
             {
-                if (pos._Y >= _Height_r || pos._X >= _Width_r || pos._Y < 0 || pos._X < 0)
+                if (pos._Y >= _Height || pos._X >= _Width || pos._Y < 0 || pos._X < 0)
                     return 0;
 
                 return _space[pos._X, pos._Y];
             }
             internal bool SetCell(CVector2i pos, int val)
             {
-                if (pos._Y >= _Height_r || pos._X >= _Width_r || pos._Y < 0 || pos._X < 0)
+                if (pos._Y >= _Height || pos._X >= _Width || pos._Y < 0 || pos._X < 0)
                     return false;
 
                 _space[pos._X, pos._Y] = val;
@@ -303,7 +268,7 @@ namespace TieMiao
             // 获取指定坐标四周（上下左右）为空（等于0）的坐标集
             internal bool GetCellValidSpaceInAround(CVector2i pos)
             {
-                if (pos._Y >= _Height_r || pos._X >= _Width_r || pos._Y < 0 || pos._X < 0)
+                if (pos._Y >= _Height || pos._X >= _Width || pos._Y < 0 || pos._X < 0)
                     return false;
 
                 return _space[pos._X, pos._Y] < 1;
@@ -312,20 +277,21 @@ namespace TieMiao
             // 获取指定坐标四周（上下左右）不为空（等于0）的坐标集
             internal bool GetCellValidValueInAround(CVector2i pos)
             {
-                if (pos._Y >= _Height_r || pos._X >= _Width_r || pos._Y < 0 || pos._X < 0)
+                if (pos._Y >= _Height || pos._X >= _Width || pos._Y < 0 || pos._X < 0)
                     return false;
 
                 return _space[pos._X, pos._Y] > 0;
             }
             public void ResetArea(int w, int h, int rooms, int crawlers)
             {
-                _Width_r = w;
-                _Height_r = h;
+                _Width = w;
+                _Height = h;
                 _space = new int[w, h];
                 _roomNum = rooms;
                 _evaCrawlers.Clear();
                 _hatchingCrawlers.Clear();
                 _aliveCrawlers.Clear();
+                _crawlers.Clear();
 
                 for (int i = 0; i < crawlers; i++)
                 {
@@ -371,21 +337,91 @@ namespace TieMiao
                         _position._Y = value._Y;
                     }
                 }
+                public int _Id
+                {
+                    get {
+                        return _id;
+                    }
+                }
+                public bool _IsEva
+                {
+                    get
+                    {
+                        return _mother == null;
+                    }
+                }
 
                 private int _burrowRate;
 
-                public int _id = 0;
-                public int _hp = 0;
-                public int _generation = 1;
-                public int _seeds = 0;
-                public int _eggs = 0;
+                private int _id = 0;
+                private int _hp = 0;
+                private int _generation = 1;
+                private int _seeds = 0;
+                private int _eggs = 0;
                 private CArea _area = null;
-                public CCrawler _mother = null;
-                public System.Random _random = null;
-                public List<CCrawler> _children = null;
-                public List<CCellData> _footMarks = null;
+                private CCrawler _mother = null;
+                private System.Random _random = null;
+                private List<CCrawler> _children = null;
+                private List<CCellData> _footMarks = null;
 
                 private delegate bool _func(CVector2i pos);
+                public CCrawler(ref CArea area)
+                {
+                    _area = area;
+                    _generation = 1;
+                    _random = new System.Random();
+                    _footMarks = new List<CCellData>();
+                    _children = new List<CCrawler>();
+                }
+
+                public Dictionary<string, string> GetInfo()
+                {
+                    Dictionary<string, string> __result = new Dictionary<string, string>();
+
+                    __result.Add("id", _id.ToString());
+                    __result.Add("mother", _mother == null ? "0" : _mother._id.ToString());
+                    __result.Add("generation", _generation.ToString());
+                    __result.Add("position", string.Format("({0}, {1})", Position._X, Position._Y));
+                    __result.Add("hp", _hp.ToString());
+                    __result.Add("eggs", _eggs.ToString());
+                    __result.Add("seeds", _seeds.ToString());
+                    __result.Add("relation", string.Format("(G:{0},I:{1})", _generation, _id));
+
+                    CCrawler __tmpCrawler = _mother;
+                    while (__tmpCrawler != null)
+                    {
+                        __result["relation"] += string.Format("->(G:{0},I:{1})", __tmpCrawler._generation, __tmpCrawler._id);
+                        __tmpCrawler = __tmpCrawler._mother;
+                    }
+
+                    __result.Add("footmarks", "");
+                    for (int i = 0; i < _footMarks.Count; i++)
+                    {
+                        __result["footmarks"] += string.Format("  {0}: [x:{1}, y:{2}, flag:{3}]\n",
+                            i.ToString("D2"),
+                            _footMarks[i]._Pos._X,
+                            _footMarks[i]._Pos._Y,
+                            _footMarks[i]._Flag);
+                    }
+
+                    __result.Add("roomdata", "");
+                    int[,] __room = GetRoomData();
+
+                    for (int row = 0; row < __room.GetLength(1); row++)
+                    {
+                        for (int col = 0; col < __room.GetLength(0); col++)
+                            __result["roomdata"] += string.Format(" {0} ", __room[col, row].ToString("D3"));
+
+                        __result["roomdata"] += "\n";
+                    }
+                    return __result;
+                }
+
+                public CCrawler GetMother()
+                {
+                    return _mother;
+                }
+
                 public List<CCrawler> GetChildren()
                 {
                     List<CCrawler> __result = new List<CCrawler>();
@@ -407,12 +443,6 @@ namespace TieMiao
 
                 public int[,] GetRoomData()
                 {
-                    //return new int[4,3]{
-                    //    {0,43,0},    
-                    //    {11,33,0},    
-                    //    {131,1,41},    
-                    //    {0,131,161}};
-
                     int __minX = 0;
                     int __maxX = 0;
                     int __minY = 0;
@@ -443,7 +473,7 @@ namespace TieMiao
                     return __result;
                 }
 
-                public void clip(int left, int up)
+                internal void clip(int left, int up)
                 {
                     foreach (CCellData cell in _footMarks)
                     {
@@ -477,12 +507,6 @@ namespace TieMiao
                     return GetChildrenCount() + 1;
                 }
 
-                public void Print()
-                {
-                    Console.Write("hp:" + GetHP().ToString());
-                    Console.Write(" generation:" + _generation.ToString());
-                    Console.WriteLine("");
-                }
                 public void SetId(int id)
                 {
                     _id = id;
@@ -620,15 +644,6 @@ namespace TieMiao
                     return __result.Distinct().ToList();
                 }
 
-                public CCrawler(ref CArea area)
-                {
-                    _area = area;
-                    _generation = 1;
-                    _random = new System.Random();
-                    _footMarks = new List<CCellData>();
-                    _children = new List<CCrawler>();
-                }
-
                 public int GetHP()
                 {
                     return _hp - _footMarks.Count;
@@ -652,7 +667,7 @@ namespace TieMiao
                             return;
 
                         //_position = new CVector2i(_random.Next(_area.GetWidth()), _random.Next(_area.GetHeight()));
-                        Position = new CVector2i(_area._Width_r / 2, _area._Height_r / 2);
+                        Position = new CVector2i(_area._Width / 2, _area._Height / 2);
                     }
                     else
                     {
@@ -663,7 +678,7 @@ namespace TieMiao
                     __footMark._Pos = Position;
                     _footMarks.Add(__footMark);
 
-                    _area.SetCell(Position, 1);
+                    _area.SetCell(Position, (int)EWallFlag.Space);
 
                     _hp = _random.Next(1, 15);
                     _hp += _random.Next(2);
@@ -687,7 +702,7 @@ namespace TieMiao
                         _seeds -= _eggs;
                     }
                 }
-                public bool Lay()
+                private bool lay()
                 {
                     CCrawler __crawler = this;
                     List<CVector2i> __validPos = __crawler.GetTheCrawlerValidSpace();
@@ -801,7 +816,7 @@ namespace TieMiao
                     {
                         case CCrawler.ECaseOfMove.Burrow:
                         case CCrawler.ECaseOfMove.Death:
-                            Lay();
+                            lay();
                             afterDeath();
                             break;
                     }

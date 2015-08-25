@@ -37,7 +37,7 @@ public class CRoomRender : MonoBehaviour
     }
     public void SetData(CMapCreator.CArea.CCrawler crawler)
     {
-        name = "room" + crawler._id.ToString();
+        name = "room" + crawler._Id.ToString();
         _crawler = crawler;
         _room = _crawler.GetRoomData();
 
@@ -64,9 +64,9 @@ public class CRoomRender : MonoBehaviour
         }
 
         TextMesh __txt = GetComponentInChildren<TextMesh>();
-        __txt.text = _crawler._id.ToString();
+        __txt.text = _crawler._Id.ToString();
 
-        if (_crawler._mother == null)
+        if (_crawler._IsEva)
         {
             SetChildrenRoute();
         }
@@ -260,51 +260,20 @@ public class CRoomRender : MonoBehaviour
 
     private void PrintInfo()
     {
+        Dictionary<string, string> __info = _crawler.GetInfo();
         Text __infoText = GameObject.Find("Text").GetComponent<Text>() as Text;
-        __infoText.text = string.Format("ID: {0}\n", _crawler._id);
-        __infoText.text += string.Format("generation: {0}\n", _crawler._generation);
-        __infoText.text += string.Format("position: {0} : {1}\n", _crawler.Position._X, _crawler.Position._Y);
-        __infoText.text += string.Format("HP: {0}\n", _crawler._hp);
-        __infoText.text += string.Format("mother: {0}\n", _crawler._mother == null ? "0" : _crawler._mother._id.ToString());
-        __infoText.text += string.Format("eggs: {0}\n", _crawler._eggs);
-        __infoText.text += string.Format("seeds: {0}\n", _crawler._seeds);
+        __infoText.text = string.Format("ID: {0}\n", __info["id"]);
+        __infoText.text += string.Format("mother: {0}\n", __info["mother"]);
+        __infoText.text += string.Format("generation: {0}\n", __info["generation"]);
+        __infoText.text += string.Format("position: {0}\n", __info["position"]);
+        __infoText.text += string.Format("HP: {0}\n", __info["hp"]);
+        __infoText.text += string.Format("eggs: {0}\n", __info["eggs"]);
+        __infoText.text += string.Format("seeds: {0}\n", __info["seeds"]);
+        __infoText.text += string.Format("relation:\n{0}\n", __info["relation"]);
+        __infoText.text += string.Format("footmarks:\n{0}", __info["footmarks"]);
+        __infoText.text += string.Format("room:\n{0}", __info["roomdata"]);
 
-        __infoText.text += string.Format("relation:\n");
-        CMapCreator.CArea.CCrawler __tmpCrawler = _crawler;
         _isAnime = true;
-
-        __infoText.text += string.Format("(G:{0},I:{1})", _crawler._generation, _crawler._id);
-
-        //CRoomRender __tmpRoomRender = null;
-        while (__tmpCrawler._mother != null)
-        {
-            __tmpCrawler = __tmpCrawler._mother;
-            //__tmpRoomRender = GameObject.Find("room" + __tmpCrawler._id.ToString()).GetComponent<CRoomRender>();
-
-            //__tmpRoomRender._IsAnime = true;
-            __infoText.text += string.Format("->(G:{0},I:{1})", __tmpCrawler._generation, __tmpCrawler._id);
-        }
-        __infoText.text += string.Format("\nfootmarks:\n");
-
-        for (int i = 0; i < __tmpCrawler._footMarks.Count; i++)
-        {
-            __infoText.text += string.Format("  {0}: [x:{1}, y:{2}, flag:{3}]\n",
-                i.ToString("D2"),
-                __tmpCrawler._footMarks[i]._Pos._X,
-                __tmpCrawler._footMarks[i]._Pos._Y,
-                __tmpCrawler._footMarks[i]._Flag);
-        }
-
-        __infoText.text += string.Format("room:\n");
-
-        for (int row = 0; row < _room.GetLength(1); row++)
-        {
-            for (int col = 0; col < _room.GetLength(0); col++)
-                __infoText.text += string.Format(" {0} ", _room[col, row].ToString("D3"));
-
-            __infoText.text += "\n";
-        }
-    
     }
 
     void OnMouseOver() 
@@ -350,7 +319,7 @@ public class CRoomRender : MonoBehaviour
         {
             #region 设置child的路线点
             __tmpCrawler = child;
-            __tmpRoomRender = GameObject.Find("room" + __tmpCrawler._id.ToString()).GetComponent<CRoomRender>();
+            __tmpRoomRender = GameObject.Find("room" + __tmpCrawler._Id.ToString()).GetComponent<CRoomRender>();
             __trf = __tmpRoomRender.transform.Find("ID").GetComponent<Transform>();
 
             __line = __tmpRoomRender.GetComponentInChildren<LineRenderer>();
@@ -358,8 +327,8 @@ public class CRoomRender : MonoBehaviour
             #endregion
 
             #region 设置mother的路线点
-            __tmpCrawler = __tmpCrawler._mother;
-            __tmpRoomRender = GameObject.Find("room" + __tmpCrawler._id.ToString()).GetComponent<CRoomRender>();
+            __tmpCrawler = __tmpCrawler.GetMother();
+            __tmpRoomRender = GameObject.Find("room" + __tmpCrawler._Id.ToString()).GetComponent<CRoomRender>();
             __trf = __tmpRoomRender.transform.Find("ID").GetComponent<Transform>();
 
             __line.SetPosition(1, __trf.position);
@@ -373,7 +342,7 @@ public class CRoomRender : MonoBehaviour
 
         foreach (CMapCreator.CArea.CCrawler child in _crawler.GetChildren())
         {
-            __tmpRoomRender = GameObject.Find("room" + child._id.ToString()).GetComponent<CRoomRender>();
+            __tmpRoomRender = GameObject.Find("room" + child._Id.ToString()).GetComponent<CRoomRender>();
             __line = __tmpRoomRender.GetComponentInChildren<LineRenderer>();
             __line.SetWidth(width, width);
         }
@@ -404,10 +373,10 @@ public class CRoomRender : MonoBehaviour
 
         while (__tmpCrawler != null)
         {
-            __tmpRoomRender = GameObject.Find("room" + __tmpCrawler._id.ToString()).GetComponent<CRoomRender>();
+            __tmpRoomRender = GameObject.Find("room" + __tmpCrawler._Id.ToString()).GetComponent<CRoomRender>();
             __line = __tmpRoomRender.GetComponentInChildren<LineRenderer>();
             __line.SetWidth(width, width);
-            __tmpCrawler = __tmpCrawler._mother;
+            __tmpCrawler = __tmpCrawler.GetMother();
         }
     
     }
