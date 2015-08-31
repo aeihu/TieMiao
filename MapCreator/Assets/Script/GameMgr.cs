@@ -18,7 +18,7 @@ public class GameMgr : MonoBehaviour {
     CRoomCellTypeManager _block;
     int _cellSize = 110;
     int _borderSize = 10;
-    const Color _transparent = new Color(0, 0, 0, 0);
+    Color _transparent = new Color(0, 0, 0, 0);
 	void Start () 
     {
         _block = new CRoomCellTypeManager(

@@ -42,7 +42,7 @@ public class CRoomRender : MonoBehaviour
         _room = _crawler.GetRoomData();
 
         Transform __renderTrf = GetComponent<Transform>();
-        __renderTrf.position = new Vector3((float)_crawler.Position._X, -((float)_crawler.Position._Y));
+        __renderTrf.position = new Vector3((float)_crawler._Position._X, -((float)_crawler._Position._Y));
 
         Transform __idTrf = transform.Find("ID").GetComponent<Transform>();
         bool __break = false;
@@ -52,8 +52,8 @@ public class CRoomRender : MonoBehaviour
             {
                 if (_room[col, row] > 0)
                 {
-                    __idTrf.position = new Vector3((float)(col + _crawler.Position._X) + 0.5f, 
-                        -((float)(row + _crawler.Position._Y)) - 0.5f, -5);
+                    __idTrf.position = new Vector3((float)(col + _crawler._Position._X) + 0.5f,
+                        -((float)(row + _crawler._Position._Y)) - 0.5f, -5);
                     __break = true;
                     break;
                 }

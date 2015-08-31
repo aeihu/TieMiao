@@ -256,12 +256,12 @@ namespace TieMiao
 
                 return _space[pos._X, pos._Y];
             }
-            internal bool SetCell(CVector2i pos, int val)
+            internal bool SetCell(CVector2i pos, EWallFlag val)
             {
                 if (pos._Y >= _Height || pos._X >= _Width || pos._Y < 0 || pos._X < 0)
                     return false;
 
-                _space[pos._X, pos._Y] = val;
+                _space[pos._X, pos._Y] = (int)val;
                 return true;
             }
 
@@ -325,7 +325,7 @@ namespace TieMiao
                 #endregion
 
                 private CVector2i _position = new CVector2i();
-                public CVector2i Position
+                public CVector2i _Position
                 {
                     get
                     {
@@ -381,7 +381,7 @@ namespace TieMiao
                     __result.Add("id", _id.ToString());
                     __result.Add("mother", _mother == null ? "0" : _mother._id.ToString());
                     __result.Add("generation", _generation.ToString());
-                    __result.Add("position", string.Format("({0}, {1})", Position._X, Position._Y));
+                    __result.Add("position", string.Format("({0}, {1})", _Position._X, _Position._Y));
                     __result.Add("hp", _hp.ToString());
                     __result.Add("eggs", _eggs.ToString());
                     __result.Add("seeds", _seeds.ToString());
@@ -526,7 +526,7 @@ namespace TieMiao
                                 {
                                     _footMarks[0]._Flag |= EWallFlag.LeftDoor;
                                     _mother._footMarks[index]._Flag |= EWallFlag.RightDoor;
-                                    _area.SetCell(_mother._footMarks[index]._Pos, (int)_mother._footMarks[index]._Flag);
+                                    _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                     __isBreak = true;
                                     break;
                                 }
@@ -535,7 +535,7 @@ namespace TieMiao
                                 {
                                     _footMarks[0]._Flag |= EWallFlag.RightDoor;
                                     _mother._footMarks[index]._Flag |= EWallFlag.LeftDoor;
-                                    _area.SetCell(_mother._footMarks[index]._Pos, (int)_mother._footMarks[index]._Flag);
+                                    _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                     __isBreak = true;
                                     break;
                                 }
@@ -549,7 +549,7 @@ namespace TieMiao
                                     {
                                         _footMarks[0]._Flag |= EWallFlag.UpDoor;
                                         _mother._footMarks[index]._Flag |= EWallFlag.BottomDoor;
-                                        _area.SetCell(_mother._footMarks[index]._Pos, (int)_mother._footMarks[index]._Flag);
+                                        _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                         break;
                                     }
                                     if (_footMarks[0]._Pos._Y + 1 == _mother._footMarks[index]._Pos._Y &&
@@ -557,7 +557,7 @@ namespace TieMiao
                                     {
                                         _footMarks[0]._Flag |= EWallFlag.BottomDoor;
                                         _mother._footMarks[index]._Flag |= EWallFlag.UpDoor;
-                                        _area.SetCell(_mother._footMarks[index]._Pos, (int)_mother._footMarks[index]._Flag);
+                                        _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                         break;
                                     }
                                 }
@@ -601,7 +601,7 @@ namespace TieMiao
                                 }
                             }
                         }
-                        _area.SetCell(_footMarks[i]._Pos, (int)_footMarks[i]._Flag);
+                        _area.SetCell(_footMarks[i]._Pos, _footMarks[i]._Flag);
                         #endregion
 
                         #region 把房间坐标设置为房间最左上点的cell坐标
@@ -612,7 +612,7 @@ namespace TieMiao
                 }
                 private List<CVector2i> GetValidSpace(_func func)
                 {
-                    return GetValidSpace(func, Position);
+                    return GetValidSpace(func, _Position);
                 }
                 private List<CVector2i> GetValidSpace(_func func, CVector2i pos)
                 {
@@ -667,18 +667,18 @@ namespace TieMiao
                             return;
 
                         //_position = new CVector2i(_random.Next(_area.GetWidth()), _random.Next(_area.GetHeight()));
-                        Position = new CVector2i(_area._Width / 2, _area._Height / 2);
+                        _Position = new CVector2i(_area._Width / 2, _area._Height / 2);
                     }
                     else
                     {
-                        Position = pos;
+                        _Position = pos;
                     }
 
                     CCellData __footMark = new CCellData();
-                    __footMark._Pos = Position;
+                    __footMark._Pos = _Position;
                     _footMarks.Add(__footMark);
 
-                    _area.SetCell(Position, (int)EWallFlag.Space);
+                    _area.SetCell(_Position, EWallFlag.Space);
 
                     _hp = _random.Next(1, 15);
                     _hp += _random.Next(2);
@@ -772,8 +772,8 @@ namespace TieMiao
                         CCellData __footMark = new CCellData();
                         __footMark._Pos = validPos[_random.Next(validPos.Count)];
                         _footMarks.Add(__footMark);
-                        Position = _footMarks[_footMarks.Count - 1]._Pos;
-                        _area.SetCell(Position, 1);
+                        _Position = _footMarks[_footMarks.Count - 1]._Pos;
+                        _area.SetCell(_Position, EWallFlag.Space);
                         return true;
                     }
 
@@ -791,7 +791,7 @@ namespace TieMiao
 
                             while (__index >= 0)
                             {
-                                Position = _footMarks[__index]._Pos;
+                                _Position = _footMarks[__index]._Pos;
                                 __validPos = GetValidSpace(_area.GetCellValidSpaceInAround);
 
                                 if (processOfMoveing(__validPos))
