@@ -104,7 +104,8 @@ namespace TieMiao
                 private set;
             }
 
-            public List<CCrawler> _evaCrawlers = new List<CCrawler>();
+            //public List<CCrawler> _evaCrawlers = new List<CCrawler>();
+            public CCrawler _evaCrawler = null;
             public List<CCrawler> _crawlers = new List<CCrawler>();
             private List<CCrawler> _hatchingCrawlers = new List<CCrawler>();
             private List<CCrawler> _aliveCrawlers = new List<CCrawler>();
@@ -208,11 +209,64 @@ namespace TieMiao
                         _tempSpace[i, j] = _space[__LeftIndex + i, __upIndex + j];
 
                 _space = _tempSpace;
-                
-                foreach (CCrawler crawler in _evaCrawlers)
+
+                _evaCrawler.clip(__LeftIndex, __upIndex);
+            }
+
+            public int getDistance(int crawlerAId, int crawlerBId)
+            {
+                if (crawlerAId == crawlerBId)
+                    return 0;
+
+                CCrawler __crawlerA = null;
+                CCrawler __crawlerB = null;
+
+                foreach (CCrawler crawler in _crawlers)
                 {
-                    crawler.clip(__LeftIndex, __upIndex);
+                    if (crawler._Id == crawlerAId)
+                    {
+                        __crawlerA = crawler;
+                    }
+
+                    if (crawler._Id == crawlerBId)
+                    {
+                        __crawlerB = crawler;
+                    }
+
+                    if (__crawlerA != null && __crawlerB != null)
+                        break;
                 }
+
+                if (__crawlerA == null || __crawlerB == null)
+                    return -1;
+
+                int __curGeneration = __crawlerA._Generation > __crawlerB._Generation ? __crawlerA._Generation : __crawlerB._Generation;
+                int __count = 0;
+                do
+                {
+                    if (__crawlerA._Generation == __curGeneration)
+                    {
+                        __crawlerA = __crawlerA.GetMother();
+                        __count++;
+                    }
+
+                    if (__crawlerB._Generation == __curGeneration)
+                    {
+                        __crawlerB = __crawlerB.GetMother();
+                        __count++;
+                    }
+
+                    if (__crawlerA._Id == __crawlerB._Id)
+                        break;
+
+                    __curGeneration--;
+
+                    if (__curGeneration < 1)
+                        return -1;
+
+                }while (true);
+
+                return __count;
             }
 
             public int[,] Produce()
@@ -282,21 +336,16 @@ namespace TieMiao
 
                 return _space[pos._X, pos._Y] > 0;
             }
-            public void ResetArea(int w, int h, int rooms, int crawlers)
+            public void ResetArea(int w, int h, int rooms)
             {
                 _Width = w;
                 _Height = h;
                 _space = new int[w, h];
                 _roomNum = rooms;
-                _evaCrawlers.Clear();
+                _evaCrawler = CCrawler.CreateEva(this);
                 _hatchingCrawlers.Clear();
                 _aliveCrawlers.Clear();
                 _crawlers.Clear();
-
-                for (int i = 0; i < crawlers; i++)
-                {
-                    _evaCrawlers.Add(CCrawler.CreateEva(this));
-                }
             }
 
             public class CCrawler
@@ -348,6 +397,13 @@ namespace TieMiao
                     get
                     {
                         return _mother == null;
+                    }
+                }
+                public int _Generation
+                {
+                    get
+                    {
+                        return _generation;
                     }
                 }
 

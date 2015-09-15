@@ -25,13 +25,13 @@ public class GameMgr : MonoBehaviour {
             _cellSize, 10, new Color32(0, 0, 200, 200), new Color32(250, 250, 250, 255));
 
         _map._AreaList.Add(new CMapCreator.CArea());
-        _map._AreaList[0].ResetArea(50, 50, 50, 1);
+        _map._AreaList[0].ResetArea(50, 50, 50);
         _map._AreaList[0].Produce();
 
 
         _prefab = (GameObject)Resources.Load("Prefabs/Room");
 
-        foreach (CMapCreator.CArea.CCrawler cc in _map._AreaList[0]._evaCrawlers[0].GetCells())
+        foreach (CMapCreator.CArea.CCrawler cc in _map._AreaList[0]._evaCrawler.GetCells())
         {
             int[,] __room = cc.GetRoomData();
             Texture2D __t2d = new Texture2D(__room.GetLength(0) * (_cellSize - _borderSize) + _borderSize,
@@ -71,7 +71,7 @@ public class GameMgr : MonoBehaviour {
             obj.SetTexture(__t2d);
             obj.SetData(cc);
         }
-        Debug.Log("Rooms:" + _map._AreaList[0]._evaCrawlers[0].GetCrawlerCount());
+        Debug.Log("Rooms:" + _map._AreaList[0]._evaCrawler.GetCrawlerCount());
 	}
 	
 	// Update is called once per frame
