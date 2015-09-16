@@ -406,6 +406,13 @@ namespace TieMiao
                         return _generation;
                     }
                 }
+                public int _MotherId
+                {
+                    get
+                    {
+                        return _motherId;
+                    }
+                }
 
                 private int _burrowRate;
 
@@ -416,6 +423,7 @@ namespace TieMiao
                 private int _eggs = 0;
                 private CArea _area = null;
                 private CCrawler _mother = null;
+                private int _motherId = -1;
                 private System.Random _random = null;
                 private List<CCrawler> _children = null;
                 private List<CCellData> _footMarks = null;
@@ -428,6 +436,31 @@ namespace TieMiao
                     _random = new System.Random();
                     _footMarks = new List<CCellData>();
                     _children = new List<CCrawler>();
+                }
+
+                public void Separation()
+                {
+                    if (_mother != null)
+                    {
+                        CCrawler __mother = _mother;
+                        _mother = null;
+                        __mother._children.Remove(this);
+                    }
+                }
+                public bool Incorporation(CCrawler crawler)
+                {
+                    if (_mother == null)
+                    {
+                        if (crawler._Id == _motherId)
+                        {
+                            _mother = crawler;
+                            crawler._children.Add(this);
+                        }
+                        else
+                            return false;
+                    }
+
+                    return true;
                 }
 
                 public Dictionary<string, string> GetInfo()
@@ -714,6 +747,7 @@ namespace TieMiao
                     if (mother != null)
                     {
                         _mother = mother;
+                        _motherId = mother._Id;
                         _generation = mother._generation + 1;
                     }
 
