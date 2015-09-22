@@ -396,7 +396,7 @@ namespace TieMiao
                 {
                     get
                     {
-                        return _mother == null;
+                        return _mother == null && _motherId == -1;
                     }
                 }
                 public int _Generation
@@ -835,8 +835,6 @@ namespace TieMiao
                             }
                             else
                             {
-                                //need print log
-                                Console.Write("oooooooooooooooooooooooooooooooooooo");
                                 return false;
                             }
                         }
