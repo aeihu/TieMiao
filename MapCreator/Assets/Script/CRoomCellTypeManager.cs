@@ -16,13 +16,14 @@ namespace TieMiao
     {
         class RoomCellType
         {
-            public RoomCellType(ERoomFlag flag, int size, int borderSize, Color32 spaceColor, Color32 wallColor)
+            public RoomCellType(ERoomFlag flag, int size, int borderSize, Color32 spaceColor, Color32 wallColor, Color32 lockColor)
             {
                 _size = size;
                 _doorSize = size / 3;
                 _borderSize = borderSize;
                 _spaceColor = spaceColor;
                 _wallColor = wallColor;
+                _lockColor = lockColor;
                 _colorblock = new Color32[_size * _size];
                 _Flag = flag;
             }
@@ -33,6 +34,7 @@ namespace TieMiao
             int _doorSize;
             Color32 _spaceColor;
             Color32 _wallColor;
+            Color32 _lockColor;
             Color32[] _colorblock;
             ERoomFlag _flag = ERoomFlag.None;
             public ERoomFlag _Flag
@@ -86,6 +88,16 @@ namespace TieMiao
                 if ((_flag & ERoomFlag.RightWall) != 0)
                     drawRightWall();
             }
+
+            private void drawWL(int col, int row, Color32 color)
+            {
+                int __index = col + row * _size;
+                _colorblock[__index].r = color.r;
+                _colorblock[__index].g = color.g;
+                _colorblock[__index].b = color.b;
+                _colorblock[__index].a = color.a;
+            }
+
             private void drawUpWall()
             {
                 for (int col = 0; col < _size; col++)
@@ -93,13 +105,14 @@ namespace TieMiao
                     for (int row = 0; row < _borderSize; row++)
                     {
                         if ((_flag & ERoomFlag.UpDoor) != 0 && col >= _doorSize && col < _doorSize << 1)
-                            continue;
+                        {
+                            if ((_flag & ERoomFlag.Lock) != 0)
+                                drawWL(col, row, _lockColor);
 
-                        int __index = col + row * _size;
-                        _colorblock[__index].r = _wallColor.r;
-                        _colorblock[__index].g = _wallColor.g;
-                        _colorblock[__index].b = _wallColor.b;
-                        _colorblock[__index].a = _wallColor.a;
+                            continue;
+                        }
+
+                        drawWL(col, row, _wallColor);
                     }
                 }
             }
@@ -110,13 +123,14 @@ namespace TieMiao
                     for (int row = 0; row < _size; row++)
                     {
                         if ((_flag & ERoomFlag.LeftDoor) != 0 && row >= _doorSize && row < _doorSize << 1)
-                            continue;
+                        {
+                            if ((_flag & ERoomFlag.Lock) != 0)
+                                drawWL(col, row, _lockColor);
 
-                        int __index = col + row * _size;
-                        _colorblock[__index].r = _wallColor.r;
-                        _colorblock[__index].g = _wallColor.g;
-                        _colorblock[__index].b = _wallColor.b;
-                        _colorblock[__index].a = _wallColor.a;
+                            continue;
+                        }
+
+                        drawWL(col, row, _wallColor);
                     }
                 }
             }
@@ -127,13 +141,14 @@ namespace TieMiao
                     for (int row = _size - 1; row >= _size - _borderSize; row--)
                     {
                         if ((_flag & ERoomFlag.BottomDoor) != 0 && col >= _doorSize && col < _doorSize << 1)
-                            continue;
+                        {
+                            if ((_flag & ERoomFlag.Lock) != 0)
+                                drawWL(col, row, _lockColor);
 
-                        int __index = col + row * _size;
-                        _colorblock[__index].r = _wallColor.r;
-                        _colorblock[__index].g = _wallColor.g;
-                        _colorblock[__index].b = _wallColor.b;
-                        _colorblock[__index].a = _wallColor.a;
+                            continue;
+                        }
+
+                        drawWL(col, row, _wallColor);
                     }
                 }
             }
@@ -144,13 +159,14 @@ namespace TieMiao
                     for (int row = 0; row < _size; row++)
                     {
                         if ((_flag & ERoomFlag.RightDoor) != 0 && row >= _doorSize && row < _doorSize << 1)
+                        {
+                            if ((_flag & ERoomFlag.Lock) != 0)
+                                drawWL(col, row, _lockColor);
+                            
                             continue;
+                        }
 
-                        int __index = col + row * _size;
-                        _colorblock[__index].r = _wallColor.r;
-                        _colorblock[__index].g = _wallColor.g;
-                        _colorblock[__index].b = _wallColor.b;
-                        _colorblock[__index].a = _wallColor.a;
+                        drawWL(col, row, _wallColor);
                     }
                 }
             }
@@ -161,20 +177,22 @@ namespace TieMiao
         int _size = 16;
         Color32 _spaceColor;
         Color32 _wallColor;
+        Color32 _lockColor;
         Dictionary<ERoomFlag, Color32[]> _roomCellTypes = new Dictionary<ERoomFlag, Color32[]>();
 
-        public CRoomCellTypeManager(int size, int borderSize, Color32 spaceColor, Color32 wallColor)
+        public CRoomCellTypeManager(int size, int borderSize, Color32 spaceColor, Color32 wallColor, Color32 lockColor)
         {
             _size = size;
             _borderSize = borderSize;
             _spaceColor = spaceColor;
             _wallColor = wallColor;
+            _lockColor = lockColor;
         }
         public Color32[] GetColorBlock(ERoomFlag flag)
         {
             if (!_roomCellTypes.ContainsKey(flag))
             {
-                RoomCellType __newCell = new RoomCellType(flag, _size, _borderSize, _spaceColor, _wallColor);
+                RoomCellType __newCell = new RoomCellType(flag, _size, _borderSize, _spaceColor, _wallColor, _lockColor);
                 _roomCellTypes.Add(flag, __newCell.GetColorBlock());
             }
 

@@ -296,6 +296,13 @@ namespace TieMiao
                         }
                         else
                         {
+                            #region plan A 空间开垦结束后整理空间数据
+                            //foreach (CCrawler crawler in _crawlers)
+                            //{
+                            //    crawler.afterDeath();
+                            //}
+                            #endregion
+
                             clipArea();
                             break;
                         }
@@ -343,10 +350,10 @@ namespace TieMiao
                 _Height = h;
                 _space = new int[w, h];
                 _roomNum = rooms;
-                _evaCrawler = CCrawler.CreateEva(this);
                 _hatchingCrawlers.Clear();
                 _aliveCrawlers.Clear();
                 _crawlers.Clear();
+                _evaCrawler = CCrawler.CreateEva(this);
             }
 
             public class CCrawler
@@ -616,14 +623,15 @@ namespace TieMiao
                 {
                     _id = id;
                 }
-                private void afterDeath()
+                internal void afterDeath()
                 {
                     for (int i = 0; i < _footMarks.Count; i++)
                     {
-                        #region 设置每个cell的门
+                        #region 设置每个cell的门与锁
                         if (i == 0 && _mother != null)
                         {
                             bool __isBreak = false;
+
                             for (int index = _mother._footMarks.Count - 1; index >= 0; index--)
                             {
                                 if (_footMarks[0]._Pos._X - 1 == _mother._footMarks[index]._Pos._X &&
@@ -631,6 +639,13 @@ namespace TieMiao
                                 {
                                     _footMarks[0]._Flag |= ERoomFlag.LeftDoor;
                                     _mother._footMarks[index]._Flag |= ERoomFlag.RightDoor;
+
+                                    if (_lockId >= 0)
+                                    {
+                                        _footMarks[0]._Flag |= ERoomFlag.Lock;
+                                        _mother._footMarks[index]._Flag |= ERoomFlag.Lock;
+                                    }
+
                                     _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                     __isBreak = true;
                                     break;
@@ -640,6 +655,13 @@ namespace TieMiao
                                 {
                                     _footMarks[0]._Flag |= ERoomFlag.RightDoor;
                                     _mother._footMarks[index]._Flag |= ERoomFlag.LeftDoor;
+
+                                    if (_lockId >= 0)
+                                    {
+                                        _footMarks[0]._Flag |= ERoomFlag.Lock;
+                                        _mother._footMarks[index]._Flag |= ERoomFlag.Lock;
+                                    }
+
                                     _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                     __isBreak = true;
                                     break;
@@ -654,6 +676,13 @@ namespace TieMiao
                                     {
                                         _footMarks[0]._Flag |= ERoomFlag.UpDoor;
                                         _mother._footMarks[index]._Flag |= ERoomFlag.BottomDoor;
+
+                                        if (_lockId >= 0)
+                                        {
+                                            _footMarks[0]._Flag |= ERoomFlag.Lock;
+                                            _mother._footMarks[index]._Flag |= ERoomFlag.Lock;
+                                        }
+
                                         _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                         break;
                                     }
@@ -662,6 +691,13 @@ namespace TieMiao
                                     {
                                         _footMarks[0]._Flag |= ERoomFlag.BottomDoor;
                                         _mother._footMarks[index]._Flag |= ERoomFlag.UpDoor;
+
+                                        if (_lockId >= 0)
+                                        {
+                                            _footMarks[0]._Flag |= ERoomFlag.Lock;
+                                            _mother._footMarks[index]._Flag |= ERoomFlag.Lock;
+                                        }
+
                                         _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                         break;
                                     }
@@ -822,9 +858,14 @@ namespace TieMiao
                     }
                     #endregion
 
-                    #region 设置房间锁的ID
-                    _lockId = _random.Next(20) - 10;
-                    _lockId = _lockId < 0 ? -1 : _lockId;
+                    #region plan B 涉及到的 设置房间锁的问题
+                    if (mother != null)
+                    {
+                        _lockId = _random.Next(20) - 10;
+                        if (_lockId < 0)
+                            _lockId = -1;
+                    }
+
                     #endregion
                 }
                 private bool lay()
@@ -940,7 +981,9 @@ namespace TieMiao
                         case CCrawler.ECaseOfMove.Burrow:
                         case CCrawler.ECaseOfMove.Death:
                             lay();
+                            #region plan B 单个蠕虫死亡后整理空间数据
                             afterDeath();
+                            #endregion
                             break;
                     }
 

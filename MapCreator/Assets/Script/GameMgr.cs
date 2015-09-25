@@ -22,7 +22,7 @@ public class GameMgr : MonoBehaviour {
 	void Start () 
     {
         _block = new CRoomCellTypeManager(
-            _cellSize, 10, new Color32(0, 0, 200, 200), new Color32(250, 250, 250, 255));
+            _cellSize, 10, new Color32(0, 0, 200, 200), new Color32(250, 250, 250, 255), new Color32(250, 0, 0, 255));
 
         _map._AreaList.Add(new CMapCreator.CArea());
         _map._AreaList[0].ResetArea(50, 50, 50);
