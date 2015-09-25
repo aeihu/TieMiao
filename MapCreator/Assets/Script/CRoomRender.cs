@@ -98,7 +98,7 @@ public class CRoomRender : MonoBehaviour
                 #region 上左
                 if (__leftRight) // 上左 （从 上左点 找 上右点）
                 {
-                    if ((_room[col, row] & (int)EWallFlag.UpWall) != 0)
+                    if ((_room[col, row] & (int)ERoomFlag.UpWall) != 0)
                     {
                         col++;
                         if (col >= _room.GetLength(0))
@@ -128,7 +128,7 @@ public class CRoomRender : MonoBehaviour
                 #region 上右
                 else // 上右 （从 上右点 找 下右点）
                 {
-                    if ((_room[col, row] & (int)EWallFlag.RightWall) != 0)
+                    if ((_room[col, row] & (int)ERoomFlag.RightWall) != 0)
                     {
                         row++;
                         if (row >= _room.GetLength(1))
@@ -173,7 +173,7 @@ public class CRoomRender : MonoBehaviour
                         __orgR = row;
                     }
 
-                    if ((_room[col, row] & (int)EWallFlag.LeftWall) != 0)
+                    if ((_room[col, row] & (int)ERoomFlag.LeftWall) != 0)
                     {
                         row--;
                         if (row < 0)
@@ -203,7 +203,7 @@ public class CRoomRender : MonoBehaviour
                 #region 下右
                 else // 下右 （从 下右点 找 下左点）
                 {
-                    if ((_room[col, row] & (int)EWallFlag.BottomWall) != 0)
+                    if ((_room[col, row] & (int)ERoomFlag.BottomWall) != 0)
                     {
                         col--;
                         if (col < 0)

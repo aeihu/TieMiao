@@ -16,7 +16,7 @@ namespace TieMiao
     {
         class RoomCellType
         {
-            public RoomCellType(EWallFlag flag, int size, int borderSize, Color32 spaceColor, Color32 wallColor)
+            public RoomCellType(ERoomFlag flag, int size, int borderSize, Color32 spaceColor, Color32 wallColor)
             {
                 _size = size;
                 _doorSize = size / 3;
@@ -34,8 +34,8 @@ namespace TieMiao
             Color32 _spaceColor;
             Color32 _wallColor;
             Color32[] _colorblock;
-            EWallFlag _flag = EWallFlag.None;
-            public EWallFlag _Flag
+            ERoomFlag _flag = ERoomFlag.None;
+            public ERoomFlag _Flag
             {
                 get
                 {
@@ -74,16 +74,16 @@ namespace TieMiao
 
             private void drawWall()
             {
-                if ((_flag & EWallFlag.UpWall) != 0)
+                if ((_flag & ERoomFlag.UpWall) != 0)
                     drawUpWall();
 
-                if ((_flag & EWallFlag.BottomWall) != 0)
+                if ((_flag & ERoomFlag.BottomWall) != 0)
                     drawBottomWall();
 
-                if ((_flag & EWallFlag.LeftWall) != 0)
+                if ((_flag & ERoomFlag.LeftWall) != 0)
                     drawLeftWall();
 
-                if ((_flag & EWallFlag.RightWall) != 0)
+                if ((_flag & ERoomFlag.RightWall) != 0)
                     drawRightWall();
             }
             private void drawUpWall()
@@ -92,7 +92,7 @@ namespace TieMiao
                 {
                     for (int row = 0; row < _borderSize; row++)
                     {
-                        if ((_flag & EWallFlag.UpDoor) != 0 && col >= _doorSize && col < _doorSize << 1)
+                        if ((_flag & ERoomFlag.UpDoor) != 0 && col >= _doorSize && col < _doorSize << 1)
                             continue;
 
                         int __index = col + row * _size;
@@ -109,7 +109,7 @@ namespace TieMiao
                 {
                     for (int row = 0; row < _size; row++)
                     {
-                        if ((_flag & EWallFlag.LeftDoor) != 0 && row >= _doorSize && row < _doorSize << 1)
+                        if ((_flag & ERoomFlag.LeftDoor) != 0 && row >= _doorSize && row < _doorSize << 1)
                             continue;
 
                         int __index = col + row * _size;
@@ -126,7 +126,7 @@ namespace TieMiao
                 {
                     for (int row = _size - 1; row >= _size - _borderSize; row--)
                     {
-                        if ((_flag & EWallFlag.BottomDoor) != 0 && col >= _doorSize && col < _doorSize << 1)
+                        if ((_flag & ERoomFlag.BottomDoor) != 0 && col >= _doorSize && col < _doorSize << 1)
                             continue;
 
                         int __index = col + row * _size;
@@ -143,7 +143,7 @@ namespace TieMiao
                 {
                     for (int row = 0; row < _size; row++)
                     {
-                        if ((_flag & EWallFlag.RightDoor) != 0 && row >= _doorSize && row < _doorSize << 1)
+                        if ((_flag & ERoomFlag.RightDoor) != 0 && row >= _doorSize && row < _doorSize << 1)
                             continue;
 
                         int __index = col + row * _size;
@@ -161,7 +161,7 @@ namespace TieMiao
         int _size = 16;
         Color32 _spaceColor;
         Color32 _wallColor;
-        Dictionary<EWallFlag, Color32[]> _roomCellTypes = new Dictionary<EWallFlag, Color32[]>();
+        Dictionary<ERoomFlag, Color32[]> _roomCellTypes = new Dictionary<ERoomFlag, Color32[]>();
 
         public CRoomCellTypeManager(int size, int borderSize, Color32 spaceColor, Color32 wallColor)
         {
@@ -170,7 +170,7 @@ namespace TieMiao
             _spaceColor = spaceColor;
             _wallColor = wallColor;
         }
-        public Color32[] GetColorBlock(EWallFlag flag)
+        public Color32[] GetColorBlock(ERoomFlag flag)
         {
             if (!_roomCellTypes.ContainsKey(flag))
             {

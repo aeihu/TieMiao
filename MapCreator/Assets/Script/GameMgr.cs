@@ -49,19 +49,19 @@ public class GameMgr : MonoBehaviour {
                 for (int y = 0; y < __room.GetLength(1); y++)
                 {
                     if (__room[x, y] > 0 &&
-                        (__room[x, y] & (int)EWallFlag.UpWall) == 0 &&
-                        (__room[x, y] & (int)EWallFlag.LeftWall) == 0)
+                        (__room[x, y] & (int)ERoomFlag.UpWall) == 0 &&
+                        (__room[x, y] & (int)ERoomFlag.LeftWall) == 0)
                         __t2d.SetPixels32(x * (_cellSize - _borderSize), y * (_cellSize - _borderSize), _block.GetSize(),
-                            _block.GetSize(), _block.GetColorBlock((EWallFlag)__room[x, y]), 0);
+                            _block.GetSize(), _block.GetColorBlock((ERoomFlag)__room[x, y]), 0);
                 }
 
                 for (int y = 0; y < __room.GetLength(1); y++)
                 {
                     if (__room[x, y] > 0 &&
-                        ((__room[x, y] & (int)EWallFlag.UpWall) != 0 ||
-                        (__room[x, y] & (int)EWallFlag.LeftWall) != 0))
+                        ((__room[x, y] & (int)ERoomFlag.UpWall) != 0 ||
+                        (__room[x, y] & (int)ERoomFlag.LeftWall) != 0))
                         __t2d.SetPixels32(x * (_cellSize - _borderSize), y * (_cellSize - _borderSize), _block.GetSize(),
-                            _block.GetSize(), _block.GetColorBlock((EWallFlag)__room[x, y]), 0);
+                            _block.GetSize(), _block.GetColorBlock((ERoomFlag)__room[x, y]), 0);
                 }
             }
             __t2d.Apply();
@@ -98,19 +98,19 @@ public class GameMgr : MonoBehaviour {
         //            for (int y = 0; y < __room.GetLength(1); y++)
         //            {
         //                if (__room[x, y] > 0 &&
-        //                    (__room[x, y] & (int)EWallFlag.UpWall) == 0 &&
-        //                    (__room[x, y] & (int)EWallFlag.LeftWall) == 0)
+        //                    (__room[x, y] & (int)ERoomFlag.UpWall) == 0 &&
+        //                    (__room[x, y] & (int)ERoomFlag.LeftWall) == 0)
         //                    __t2d.SetPixels32(x * (__cellSize - __borderSize), y * (__cellSize - __borderSize), __block.GetSize(),
-        //                        __block.GetSize(), __block.GetColorBlock((CRoomCellTypeManager.EWallFlag)__room[x, y]), 0);
+        //                        __block.GetSize(), __block.GetColorBlock((CRoomCellTypeManager.ERoomFlag)__room[x, y]), 0);
         //            }
 
         //            for (int y = 0; y < __room.GetLength(1); y++)
         //            {
         //                if (__room[x, y] > 0 &&
-        //                    ((__room[x, y] & (int)EWallFlag.UpWall) != 0 ||
-        //                    (__room[x, y] & (int)EWallFlag.LeftWall) != 0))
+        //                    ((__room[x, y] & (int)ERoomFlag.UpWall) != 0 ||
+        //                    (__room[x, y] & (int)ERoomFlag.LeftWall) != 0))
         //                    __t2d.SetPixels32(x * (__cellSize - __borderSize), y * (__cellSize - __borderSize), __block.GetSize(),
-        //                        __block.GetSize(), __block.GetColorBlock((CRoomCellTypeManager.EWallFlag)__room[x, y]), 0);
+        //                        __block.GetSize(), __block.GetColorBlock((CRoomCellTypeManager.ERoomFlag)__room[x, y]), 0);
         //            }
         //        }
         //        __t2d.Apply();

@@ -16,20 +16,21 @@ using System.IO;
 
 namespace TieMiao
 {
-    public enum EWallFlag : int
+    public enum ERoomFlag : int
     {
-        None = 0,          // 000000000
-        Space = 1,         // 000000001
-        UpWall = 2,        // 000000010
-        UpDoor = 4,        // 000000100
-        LeftWall = 8,      // 000001000
-        LeftDoor = 16,     // 000010000
-        BottomWall = 32,   // 000100000
-        BottomDoor = 64,   // 001000000
-        RightWall = 128,   // 010000000
-        RightDoor = 256,   // 100000000
-        AllWall = 171,     // 010101011
-        AllWallDoor = 511, // 111111111
+        None = 0,          // 0000000000
+        Space = 1,         // 0000000001
+        UpWall = 2,        // 0000000010
+        UpDoor = 4,        // 0000000100
+        LeftWall = 8,      // 0000001000
+        LeftDoor = 16,     // 0000010000
+        BottomWall = 32,   // 0000100000
+        BottomDoor = 64,   // 0001000000
+        RightWall = 128,   // 0010000000
+        RightDoor = 256,   // 0100000000
+        Lock = 512,        // 1000000000
+        AllWall = 171,     // 0010101011
+        AllWallDoor = 511, // 0111111111
     }
 
     public class CMapCreator
@@ -310,7 +311,7 @@ namespace TieMiao
 
                 return _space[pos._X, pos._Y];
             }
-            internal bool SetCell(CVector2i pos, EWallFlag val)
+            internal bool SetCell(CVector2i pos, ERoomFlag val)
             {
                 if (pos._Y >= _Height || pos._X >= _Width || pos._Y < 0 || pos._X < 0)
                     return false;
@@ -361,7 +362,7 @@ namespace TieMiao
                 public class CCellData
                 {
                     public CVector2i _Pos;
-                    public EWallFlag _Flag = EWallFlag.AllWall;
+                    public ERoomFlag _Flag = ERoomFlag.AllWall;
                 }
 
                 #region Overmind of Crawler
@@ -421,6 +422,7 @@ namespace TieMiao
                 private int _generation = 1;
                 private int _seeds = 0;
                 private int _eggs = 0;
+                private int _lockId = -1;
                 private CArea _area = null;
                 private CCrawler _mother = null;
                 private int _motherId = -1;
@@ -436,6 +438,20 @@ namespace TieMiao
                     _random = new System.Random();
                     _footMarks = new List<CCellData>();
                     _children = new List<CCrawler>();
+                }
+
+                public bool Unlock(List<int> keyRing)
+                {
+                    if (_lockId < 0)
+                        return true;
+
+                    foreach (int key in keyRing)
+                    {
+                        if (key == _lockId)
+                            return true;
+                    }
+
+                    return false;
                 }
 
                 public void Separation()
@@ -613,8 +629,8 @@ namespace TieMiao
                                 if (_footMarks[0]._Pos._X - 1 == _mother._footMarks[index]._Pos._X &&
                                     _mother._footMarks[index]._Pos._Y == _footMarks[0]._Pos._Y)
                                 {
-                                    _footMarks[0]._Flag |= EWallFlag.LeftDoor;
-                                    _mother._footMarks[index]._Flag |= EWallFlag.RightDoor;
+                                    _footMarks[0]._Flag |= ERoomFlag.LeftDoor;
+                                    _mother._footMarks[index]._Flag |= ERoomFlag.RightDoor;
                                     _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                     __isBreak = true;
                                     break;
@@ -622,8 +638,8 @@ namespace TieMiao
                                 if (_footMarks[0]._Pos._X + 1 == _mother._footMarks[index]._Pos._X &&
                                     _mother._footMarks[index]._Pos._Y == _footMarks[0]._Pos._Y)
                                 {
-                                    _footMarks[0]._Flag |= EWallFlag.RightDoor;
-                                    _mother._footMarks[index]._Flag |= EWallFlag.LeftDoor;
+                                    _footMarks[0]._Flag |= ERoomFlag.RightDoor;
+                                    _mother._footMarks[index]._Flag |= ERoomFlag.LeftDoor;
                                     _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                     __isBreak = true;
                                     break;
@@ -636,16 +652,16 @@ namespace TieMiao
                                     if (_footMarks[0]._Pos._Y - 1 == _mother._footMarks[index]._Pos._Y &&
                                         _mother._footMarks[index]._Pos._X == _footMarks[0]._Pos._X)
                                     {
-                                        _footMarks[0]._Flag |= EWallFlag.UpDoor;
-                                        _mother._footMarks[index]._Flag |= EWallFlag.BottomDoor;
+                                        _footMarks[0]._Flag |= ERoomFlag.UpDoor;
+                                        _mother._footMarks[index]._Flag |= ERoomFlag.BottomDoor;
                                         _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                         break;
                                     }
                                     if (_footMarks[0]._Pos._Y + 1 == _mother._footMarks[index]._Pos._Y &&
                                         _mother._footMarks[index]._Pos._X == _footMarks[0]._Pos._X)
                                     {
-                                        _footMarks[0]._Flag |= EWallFlag.BottomDoor;
-                                        _mother._footMarks[index]._Flag |= EWallFlag.UpDoor;
+                                        _footMarks[0]._Flag |= ERoomFlag.BottomDoor;
+                                        _mother._footMarks[index]._Flag |= ERoomFlag.UpDoor;
                                         _area.SetCell(_mother._footMarks[index]._Pos, _mother._footMarks[index]._Flag);
                                         break;
                                     }
@@ -658,35 +674,35 @@ namespace TieMiao
                         {
                             if (i != j)
                             {
-                                if ((_footMarks[i]._Flag & EWallFlag.LeftWall) != 0 &&
+                                if ((_footMarks[i]._Flag & ERoomFlag.LeftWall) != 0 &&
                                     _footMarks[i]._Pos._X - 1 == _footMarks[j]._Pos._X &&
                                     _footMarks[i]._Pos._Y == _footMarks[j]._Pos._Y)
                                 {
-                                    _footMarks[i]._Flag -= EWallFlag.LeftWall;
+                                    _footMarks[i]._Flag -= ERoomFlag.LeftWall;
                                     continue;
                                 }
 
-                                if ((_footMarks[i]._Flag & EWallFlag.RightWall) != 0 &&
+                                if ((_footMarks[i]._Flag & ERoomFlag.RightWall) != 0 &&
                                     _footMarks[i]._Pos._X + 1 == _footMarks[j]._Pos._X &&
                                     _footMarks[i]._Pos._Y == _footMarks[j]._Pos._Y)
                                 {
-                                    _footMarks[i]._Flag -= EWallFlag.RightWall;
+                                    _footMarks[i]._Flag -= ERoomFlag.RightWall;
                                     continue;
                                 }
 
-                                if ((_footMarks[i]._Flag & EWallFlag.UpWall) != 0 &&
+                                if ((_footMarks[i]._Flag & ERoomFlag.UpWall) != 0 &&
                                     _footMarks[i]._Pos._Y - 1 == _footMarks[j]._Pos._Y &&
                                     _footMarks[i]._Pos._X == _footMarks[j]._Pos._X)
                                 {
-                                    _footMarks[i]._Flag -= EWallFlag.UpWall;
+                                    _footMarks[i]._Flag -= ERoomFlag.UpWall;
                                     continue;
                                 }
 
-                                if ((_footMarks[i]._Flag & EWallFlag.BottomWall) != 0 &&
+                                if ((_footMarks[i]._Flag & ERoomFlag.BottomWall) != 0 &&
                                     _footMarks[i]._Pos._Y + 1 == _footMarks[j]._Pos._Y &&
                                     _footMarks[i]._Pos._X == _footMarks[j]._Pos._X)
                                 {
-                                    _footMarks[i]._Flag -= EWallFlag.BottomWall;
+                                    _footMarks[i]._Flag -= ERoomFlag.BottomWall;
                                 }
                             }
                         }
@@ -744,13 +760,16 @@ namespace TieMiao
 
                 public void Born(CCrawler mother, CVector2i pos, int seeds)
                 {
+                    #region 设置母节点和辈份
                     if (mother != null)
                     {
                         _mother = mother;
                         _motherId = mother._Id;
                         _generation = mother._generation + 1;
                     }
+                    #endregion
 
+                    #region 设置初始位置
                     if (pos == null)
                     {
                         if (_area == null)
@@ -763,21 +782,31 @@ namespace TieMiao
                     {
                         _Position = pos;
                     }
+                    #endregion
 
+                    #region 初始化移动轨迹和所在的空间的位置
                     CCellData __footMark = new CCellData();
                     __footMark._Pos = _Position;
                     _footMarks.Add(__footMark);
 
-                    _area.SetCell(_Position, EWallFlag.Space);
+                    _area.SetCell(_Position, ERoomFlag.Space);
+                    #endregion
 
+                    #region 初始化生命值
                     _hp = _random.Next(1, 15);
                     _hp += _random.Next(2);
                     _hp += _random.Next(2);
                     _hp += _random.Next(2);
+                    #endregion
+
                     _area._hatchingCrawlers.Add(this);
                     _area._crawlers.Add(this);
-                    _seeds = seeds;
 
+                    #region 设置此家族系的后代数
+                    _seeds = seeds;
+                    #endregion
+
+                    #region 设置可生育child数
                     if (_seeds < 1)
                     {
                         _eggs = 0;
@@ -791,6 +820,12 @@ namespace TieMiao
 
                         _seeds -= _eggs;
                     }
+                    #endregion
+
+                    #region 设置房间锁的ID
+                    _lockId = _random.Next(20) - 10;
+                    _lockId = _lockId < 0 ? -1 : _lockId;
+                    #endregion
                 }
                 private bool lay()
                 {
@@ -861,7 +896,7 @@ namespace TieMiao
                         __footMark._Pos = validPos[_random.Next(validPos.Count)];
                         _footMarks.Add(__footMark);
                         _Position = _footMarks[_footMarks.Count - 1]._Pos;
-                        _area.SetCell(_Position, EWallFlag.Space);
+                        _area.SetCell(_Position, ERoomFlag.Space);
                         return true;
                     }
 
