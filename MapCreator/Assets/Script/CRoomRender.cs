@@ -269,6 +269,7 @@ public class CRoomRender : MonoBehaviour
         __infoText.text += string.Format("HP: {0}\n", __info["hp"]);
         __infoText.text += string.Format("eggs: {0}\n", __info["eggs"]);
         __infoText.text += string.Format("seeds: {0}\n", __info["seeds"]);
+        __infoText.text += string.Format("lock: {0}\n", __info["lock"]);
         __infoText.text += string.Format("relation:\n{0}\n", __info["relation"]);
         __infoText.text += string.Format("footmarks:\n{0}", __info["footmarks"]);
         __infoText.text += string.Format("room:\n{0}", __info["roomdata"]);

@@ -214,6 +214,7 @@ namespace TieMiao
                 _evaCrawler.clip(__LeftIndex, __upIndex);
             }
 
+            #region 获取两个节点的距离
             public int getDistance(int crawlerAId, int crawlerBId)
             {
                 if (crawlerAId == crawlerBId)
@@ -269,6 +270,7 @@ namespace TieMiao
 
                 return __count;
             }
+            #endregion
 
             public int[,] Produce()
             {
@@ -433,7 +435,7 @@ namespace TieMiao
                 private CArea _area = null;
                 private CCrawler _mother = null;
                 private int _motherId = -1;
-                private System.Random _random = null;
+                private static System.Random _random = new System.Random();
                 private List<CCrawler> _children = null;
                 private List<CCellData> _footMarks = null;
 
@@ -442,7 +444,6 @@ namespace TieMiao
                 {
                     _area = area;
                     _generation = 1;
-                    _random = new System.Random();
                     _footMarks = new List<CCellData>();
                     _children = new List<CCrawler>();
                 }
@@ -461,6 +462,7 @@ namespace TieMiao
                     return false;
                 }
 
+                #region 此时的应用为当有无法打开的锁时，分离此锁后面的节点
                 public void Separation()
                 {
                     if (_mother != null)
@@ -470,6 +472,9 @@ namespace TieMiao
                         __mother._children.Remove(this);
                     }
                 }
+                #endregion
+
+                #region 此时的应用为当锁被打开时，再次连接此锁后面的节点
                 public bool Incorporation(CCrawler crawler)
                 {
                     if (_mother == null)
@@ -485,6 +490,7 @@ namespace TieMiao
 
                     return true;
                 }
+                #endregion
 
                 public Dictionary<string, string> GetInfo()
                 {
@@ -497,6 +503,7 @@ namespace TieMiao
                     __result.Add("hp", _hp.ToString());
                     __result.Add("eggs", _eggs.ToString());
                     __result.Add("seeds", _seeds.ToString());
+                    __result.Add("lock", _lockId.ToString());
                     __result.Add("relation", string.Format("(G:{0},I:{1})", _generation, _id));
 
                     CCrawler __tmpCrawler = _mother;
