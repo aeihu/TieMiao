@@ -110,8 +110,9 @@ namespace TieMiao
             public List<CCrawler> _crawlers = new List<CCrawler>();
             private List<CCrawler> _hatchingCrawlers = new List<CCrawler>();
             private List<CCrawler> _aliveCrawlers = new List<CCrawler>();
+            private Dictionary<int, List<CCrawler>> _lockedCrawler = new Dictionary<int, List<CCrawler>>();
 
-            /*裁切多余的区域
+            /* 裁切多余的区域
              * 例：
              * 裁切前：
              * 000000
@@ -346,6 +347,13 @@ namespace TieMiao
 
                 return _space[pos._X, pos._Y] > 0;
             }
+
+            /// <summary>
+            /// 重新设置Area（区域）的数据
+            /// </summary>
+            /// <param name="w">Area（区域）的宽</param>
+            /// <param name="h">Area（区域）的高</param>
+            /// <param name="rooms">Area（区域）需要生成多少room（房间）</param>
             public void ResetArea(int w, int h, int rooms)
             {
                 _Width = w;
@@ -357,6 +365,29 @@ namespace TieMiao
                 _crawlers.Clear();
                 _evaCrawler = CCrawler.CreateEva(this);
             }
+
+            #region 与Lock-Key相关的代码段
+            public void Lock(int keyId)
+            {
+                if (_lockedCrawler.ContainsKey(keyId))
+                {
+                    foreach (CCrawler crawler in _lockedCrawler[keyId])
+                    {
+                        crawler.Separation();
+                    }
+                }
+            }
+            public void Unlock(int keyId)
+            {
+                if (_lockedCrawler.ContainsKey(keyId))
+                {
+                    foreach (CCrawler crawler in _lockedCrawler[keyId])
+                    {
+                        crawler.Incorporation();
+                    }
+                }
+            }
+            #endregion
 
             public class CCrawler
             {
@@ -406,7 +437,7 @@ namespace TieMiao
                 {
                     get
                     {
-                        return _mother == null && _motherId == -1;
+                        return _mother == null;// && _motherId == -1;
                     }
                 }
                 public int _Generation
@@ -416,13 +447,13 @@ namespace TieMiao
                         return _generation;
                     }
                 }
-                public int _MotherId
-                {
-                    get
-                    {
-                        return _motherId;
-                    }
-                }
+                //public int _MotherId
+                //{
+                //    get
+                //    {
+                //        return _motherId;
+                //    }
+                //}
 
                 private int _burrowRate;
 
@@ -432,9 +463,10 @@ namespace TieMiao
                 private int _seeds = 0;
                 private int _eggs = 0;
                 private int _lockId = -1;
+                private bool _locked = true;
                 private CArea _area = null;
                 private CCrawler _mother = null;
-                private int _motherId = -1;
+                //private int _motherId = -1;
                 private static System.Random _random = new System.Random();
                 private List<CCrawler> _children = null;
                 private List<CCellData> _footMarks = null;
@@ -446,6 +478,12 @@ namespace TieMiao
                     _generation = 1;
                     _footMarks = new List<CCellData>();
                     _children = new List<CCrawler>();
+                }
+
+                #region 与Lock-Key相关的代码段
+                public bool IsLocked()
+                {
+                    return _lockId >= 0 && _locked;
                 }
 
                 public bool Unlock(List<int> keyRing)
@@ -465,31 +503,34 @@ namespace TieMiao
                 #region 此时的应用为当有无法打开的锁时，分离此锁后面的节点
                 public void Separation()
                 {
-                    if (_mother != null)
-                    {
-                        CCrawler __mother = _mother;
-                        _mother = null;
-                        __mother._children.Remove(this);
-                    }
+                    //if (_mother != null)
+                    //{
+                    //    CCrawler __mother = _mother;
+                    //    _mother = null;
+                    //    __mother._children.Remove(this);
+                    //}
+                    _locked = true;
                 }
                 #endregion
 
                 #region 此时的应用为当锁被打开时，再次连接此锁后面的节点
-                public bool Incorporation(CCrawler crawler)
+                public void Incorporation()
                 {
-                    if (_mother == null)
-                    {
-                        if (crawler._Id == _motherId)
-                        {
-                            _mother = crawler;
-                            crawler._children.Add(this);
-                        }
-                        else
-                            return false;
-                    }
+                    //if (_mother == null)
+                    //{
+                    //    if (crawler._Id == _motherId)
+                    //    {
+                    //        _mother = crawler;
+                    //        crawler._children.Add(this);
+                    //    }
+                    //    else
+                    //        return false;
+                    //}
 
-                    return true;
+                    //return true;
+                    _locked = false;
                 }
+                #endregion
                 #endregion
 
                 public Dictionary<string, string> GetInfo()
@@ -807,7 +848,7 @@ namespace TieMiao
                     if (mother != null)
                     {
                         _mother = mother;
-                        _motherId = mother._Id;
+                        //_motherId = mother._Id;
                         _generation = mother._generation + 1;
                     }
                     #endregion

@@ -27,13 +27,6 @@ public class CRoomRender : MonoBehaviour
         SpriteRenderer __render = GetComponent<SpriteRenderer>();
         __render.sprite = Sprite.Create(t2d, new Rect(0, 0, t2d.width, t2d.height), new Vector2(0f, 0f));
         #endregion
-
-        #region 初始化Collider的范围
-        //BoxCollider2D __collider = GetComponentInChildren<BoxCollider2D>();
-
-        //__collider.size = new Vector2((float)t2d.width / 100, (float)t2d.height / 100);
-        //__collider.offset = __collider.size / 2;
-        #endregion
     }
     public void SetData(CMapCreator.CArea.CCrawler crawler)
     {
